@@ -6,6 +6,17 @@
       "action": "DENY"
     },
     {
+      "_comment": "This is based on the BGP routes advertised by AS7941",
+      "name": "internet-archive",
+      "action": "ALLOW",
+      "remote_addresses": [
+        "207.241.224.0/20",
+        "208.70.24.0/21",
+        "2620:0:9c0::/48"
+      ]
+    },
+    {
+      "_comment": "Based on: https://developers.google.com/static/search/apis/ipranges/googlebot.json",
       "name": "googlebot",
       "user_agent_regex": "\\+http\\://www\\.google\\.com/bot\\.html",
       "action": "ALLOW",
@@ -270,6 +281,7 @@
       ]
     },
     {
+      "_comment": "Based on: https://www.bing.com/toolbox/bingbot.json",
       "name": "bingbot",
       "user_agent_regex": "\\+http\\://www\\.bing\\.com/bingbot\\.htm",
       "action": "ALLOW",
@@ -305,6 +317,7 @@
       ]
     },
     {
+      "_comment": "Based on: https://help.qwant.com/wp-content/uploads/sites/2/2025/01/qwantbot.json",
       "name": "qwantbot",
       "user_agent_regex": "\\+https\\://help\\.qwant\\.com/bot/",
       "action": "ALLOW",
@@ -313,6 +326,7 @@
       ]
     },
     {
+      "_comment": "Based on: https://kagi.com/bot",
       "name": "kagibot",
       "user_agent_regex": "\\+https\\://kagi\\.com/bot",
       "action": "ALLOW",
@@ -324,6 +338,7 @@
       ]
     },
     {
+      "_comment": "Received over email from marginalia operator",
       "name": "marginalia",
       "user_agent_regex": "search\\.marginalia\\.nu",
       "action": "ALLOW",
@@ -336,6 +351,7 @@
       ]
     },
     {
+      "_comment": "Based on: https://www.mojeek.com/bot.html and manual admin confirmation in a GitHub thread: https://github.com/TecharoHQ/anubis/issues/47#issuecomment-2743815019",
       "name": "mojeekbot",
       "user_agent_regex": "http\\://www\\.mojeek\\.com/bot\\.html",
       "action": "ALLOW",
@@ -370,12 +386,7 @@
     },
     {
       "name": "headless-chrome",
-      "user_agent_regex": "HeadlessChrome",
-      "action": "DENY"
-    },
-    {
-      "name": "headless-chromium",
-      "user_agent_regex": "HeadlessChromium",
+      "user_agent_regex": "(?i:headlesschrom(e|ium))",
       "action": "DENY"
     },
     {
