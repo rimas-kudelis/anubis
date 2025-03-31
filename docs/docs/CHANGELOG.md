@@ -11,6 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v1.15.1
+
+Zenos yae Galvus: Echo 1
+
+Fixes a recurrence of [CVE-2025-24369](https://github.com/Xe/x/security/advisories/GHSA-56w8-8ppj-2p4f)
+due to an incorrect logic change in a refactor. This allows an attacker to mint a valid
+access token by passing any SHA-256 hash instead of one that matches the proof-of-work
+test.
+
+This case has been added as a regression test. It was not when CVE-2025-24369 was released
+due to the project not having the maturity required to enable this kind of regression testing.
+
 ## v1.15.0
 
 Zenos yae Galvus
