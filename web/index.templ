@@ -153,6 +153,7 @@ templ base(title string, body templ.Component) {
 	href="https://techaro.lol"
 >Techaro</a>. Made with ❤️ in 🇨🇦.
 						</p>
+						<p>Mascot design by <a href="https://bsky.app/profile/celphase.bsky.social">CELPHASE</a>.</p>
 					</center>
 				</footer>
 			</main>
@@ -208,7 +209,7 @@ templ errorPage(message string) {
 		<img
 			id="image"
 			style="width:100%;max-width:256px;"
-			src={ "/.within.website/x/cmd/anubis/static/img/sad.webp?cacheBuster=" + anubis.Version }
+			src={ "/.within.website/x/cmd/anubis/static/img/reject.webp?cacheBuster=" + anubis.Version }
 		/>
 		<p>{ message }.</p>
 		<button onClick="window.location.reload();">Try again</button>

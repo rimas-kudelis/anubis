@@ -27,6 +27,22 @@ const imageURL = (mood, cacheBuster) =>
   const spinner = document.getElementById('spinner');
   const anubisVersion = JSON.parse(document.getElementById('anubis_version').textContent);
 
+  const ohNoes = ({ titleMsg, statusMsg, imageSrc }) => {
+    title.innerHTML = titleMsg;
+    status.innerHTML = statusMsg;
+    image.src = imageSrc;
+    progress.style.display = "none";
+  };
+
+  if (!window.isSecureContext) {
+    ohNoes({
+      titleMsg: "Your context is not secure!",
+      statusMsg: `Try connecting over HTTPS or let the admin know to set up HTTPS. For more information, see <a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts#when_is_a_context_considered_secure">MDN</a>.`,
+      imageSrc: imageURL("reject", anubisVersion),
+    });
+    return;
+  }
+
   // const testarea = document.getElementById('testarea');
 
   // const videoWorks = await testVideo(testarea);
@@ -35,9 +51,9 @@ const imageURL = (mood, cacheBuster) =>
   // if (!videoWorks) {
   //   title.innerHTML = "Oh no!";
   //   status.innerHTML = "Checks failed. Please check your browser's settings and try again.";
-  //   image.src = imageURL("sad");
   //   spinner.innerHTML = "";
   //   spinner.style.display = "none";
+  //   image.src = imageURL("reject");
   //   return;
   // }
 
@@ -51,21 +67,21 @@ const imageURL = (mood, cacheBuster) =>
       return r.json();
     })
     .catch(err => {
-      title.innerHTML = "Oh no!";
-      status.innerHTML = `Failed to fetch config: ${err.message}`;
-      image.src = imageURL("sad", anubisVersion);
-      spinner.innerHTML = "";
-      spinner.style.display = "none";
+      ohNoes({
+        titleMsg: "Internal error!",
+        statusMsg: `Failed to fetch challenge config: ${err.message}`,
+        imageSrc: imageURL("reject", anubisVersion),
+      });
       throw err;
     });
 
   const process = algorithms[rules.algorithm];
   if (!process) {
-    title.innerHTML = "Oh no!";
-    status.innerHTML = `Failed to resolve check algorithm. You may want to reload the page.`;
-    image.src = imageURL("sad", anubisVersion);
-    spinner.innerHTML = "";
-    spinner.style.display = "none";
+    ohNoes({
+      titleMsg: "Challenge error!",
+      statusMsg: `Failed to resolve check algorithm. You may want to reload the page.`,
+      imageSrc: imageURL("reject", anubisVersion),
+    });
     return;
   }
 

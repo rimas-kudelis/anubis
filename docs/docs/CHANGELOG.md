@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## v1.15.2
+
+Zenos yae Galvus: Echo 2
+
+The mascot has been updated with art by [CELPHASE](https://bsky.app/profile/celphase.bsky.social).
+
 ## v1.15.1
 
 Zenos yae Galvus: Echo 1
