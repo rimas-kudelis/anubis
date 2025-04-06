@@ -1,6 +1,6 @@
 NODE_MODULES = node_modules
 
-.PHONY: build assets deps lint test
+.PHONY: build assets deps lint test package
 
 $(NODE_MODULES):
 	npm run assets
@@ -23,3 +23,6 @@ lint:
 
 test:
 	npm run test
+
+package:
+	go tool yeet
