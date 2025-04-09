@@ -1,28 +1,29 @@
-use lazy_static::lazy_static;
 use sha2::{Digest, Sha256};
-use std::sync::Mutex;
+use std::sync::{Arc, LazyLock, Mutex};
 
-// Statically allocated buffers at compile time.
-lazy_static! {
-    /// The data buffer is a bit weird in that it doesn't have an explicit length as it can
-    /// and will change depending on the challenge input that was sent by the server.
-    /// However, it can only fit 4096 bytes of data (one amd64 machine page). This is
-    /// slightly overkill for the purposes of an Anubis check, but it's fine to assume
-    /// that the browser can afford this much ram usage.
-    ///
-    /// Callers should fetch the base data pointer, write up to 4096 bytes, and then
-    /// `set_data_length` the number of bytes they have written
-    ///
-    /// This is also functionally a write-only buffer, so it doesn't really matter that
-    /// the length of this buffer isn't exposed.
-    static ref DATA_BUFFER: Mutex<[u8; 4096]> = Mutex::new([0; 4096]);
-    static ref DATA_LENGTH: Mutex<usize> = Mutex::new(0);
+/// The data buffer is a bit weird in that it doesn't have an explicit length as it can
+/// and will change depending on the challenge input that was sent by the server.
+/// However, it can only fit 4096 bytes of data (one amd64 machine page). This is
+/// slightly overkill for the purposes of an Anubis check, but it's fine to assume
+/// that the browser can afford this much ram usage.
+///
+/// Callers should fetch the base data pointer, write up to 4096 bytes, and then
+/// `set_data_length` the number of bytes they have written
+///
+/// This is also functionally a write-only buffer, so it doesn't really matter that
+/// the length of this buffer isn't exposed.
+static DATA_BUFFER: LazyLock<Arc<Mutex<[u8; 4096]>>> =
+    LazyLock::new(|| Arc::new(Mutex::new([0; 4096])));
 
-    /// SHA-256 hashes are 32 bytes (256 bits). These are stored in static buffers due to the
-    /// fact that you cannot easily pass data from host space to WebAssembly space.
-    static ref RESULT_HASH: Mutex<[u8; 32]> = Mutex::new([0; 32]);
-    static ref VERIFICATION_HASH: Mutex<[u8; 32]> = Mutex::new([0; 32]);
-}
+static DATA_LENGTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
+
+/// SHA-256 hashes are 32 bytes (256 bits). These are stored in static buffers due to the
+/// fact that you cannot easily pass data from host space to WebAssembly space.
+static RESULT_HASH: LazyLock<Arc<Mutex<[u8; 32]>>> =
+    LazyLock::new(|| Arc::new(Mutex::new([0; 32])));
+
+static VERIFICATION_HASH: LazyLock<Arc<Mutex<[u8; 32]>>> =
+    LazyLock::new(|| Arc::new(Mutex::new([0; 32])));
 
 #[link(wasm_import_module = "anubis")]
 unsafe extern "C" {

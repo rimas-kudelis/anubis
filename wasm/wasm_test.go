@@ -64,3 +64,37 @@ func TestSHA256(t *testing.T) {
 		t.Error("validation failed")
 	}
 }
+
+func BenchmarkSHA256(b *testing.B) {
+	const difficulty = 4 // one nibble, intentionally easy for testing
+
+	fin, err := web.Static.Open("static/wasm/sha256.wasm")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer fin.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	b.Cleanup(cancel)
+
+	runner, err := NewRunner(ctx, "sha256.wasm", fin)
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	h := sha256.New()
+	fmt.Fprint(h, os.Args[0])
+	data := h.Sum(nil)
+
+	if n, err := runner.WriteData(ctx, data); err != nil {
+		b.Fatalf("can't write data: %v", err)
+	} else {
+		b.Logf("wrote %d bytes to data segment", n)
+	}
+
+	for b.Loop() {
+		_, err := runner.anubisWork(ctx, difficulty, 0, 1)
+		if err != nil {
+			b.Fatalf("can't do test work run: %v", err)
+		}
+	}
+}
