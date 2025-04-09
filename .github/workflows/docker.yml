@@ -50,6 +50,8 @@ jobs:
       - name: Install Brew dependencies
         run: |
           brew bundle
+      
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Log into registry 
         uses: docker/login-action@v3
