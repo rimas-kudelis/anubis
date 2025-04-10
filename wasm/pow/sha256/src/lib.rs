@@ -1,5 +1,6 @@
 use sha2::{Digest, Sha256};
-use std::sync::{Arc, LazyLock, Mutex};
+use std::boxed::Box;
+use std::sync::{LazyLock, Mutex};
 
 /// The data buffer is a bit weird in that it doesn't have an explicit length as it can
 /// and will change depending on the challenge input that was sent by the server.
@@ -12,18 +13,17 @@ use std::sync::{Arc, LazyLock, Mutex};
 ///
 /// This is also functionally a write-only buffer, so it doesn't really matter that
 /// the length of this buffer isn't exposed.
-static DATA_BUFFER: LazyLock<Arc<Mutex<[u8; 4096]>>> =
-    LazyLock::new(|| Arc::new(Mutex::new([0; 4096])));
+static DATA_BUFFER: LazyLock<Box<[u8; 4096]>> = LazyLock::new(|| Box::new([0; 4096]));
 
 static DATA_LENGTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
 
 /// SHA-256 hashes are 32 bytes (256 bits). These are stored in static buffers due to the
 /// fact that you cannot easily pass data from host space to WebAssembly space.
-static RESULT_HASH: LazyLock<Arc<Mutex<[u8; 32]>>> =
-    LazyLock::new(|| Arc::new(Mutex::new([0; 32])));
+static RESULT_HASH: LazyLock<Box<Mutex<[u8; 32]>>> =
+    LazyLock::new(|| Box::new(Mutex::new([0; 32])));
 
-static VERIFICATION_HASH: LazyLock<Arc<Mutex<[u8; 32]>>> =
-    LazyLock::new(|| Arc::new(Mutex::new([0; 32])));
+static VERIFICATION_HASH: LazyLock<Box<Mutex<[u8; 32]>>> =
+    LazyLock::new(|| Box::new(Mutex::new([0; 32])));
 
 #[link(wasm_import_module = "anubis")]
 unsafe extern "C" {
@@ -87,7 +87,7 @@ fn validate(hash: &[u8], difficulty: u32) -> bool {
 /// The nonce is also randomly encoded in either big or little endian depending on the last
 /// byte of the data buffer in an effort to make it more annoying to automate with GPUs.
 fn compute_hash(nonce: u32) -> [u8; 32] {
-    let data = DATA_BUFFER.lock().unwrap();
+    let data = &DATA_BUFFER;
     let data_len = *DATA_LENGTH.lock().unwrap();
     let use_le = data[data_len - 1] >= 128;
 
@@ -200,7 +200,7 @@ pub extern "C" fn verification_hash_size() -> usize {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn data_ptr() -> *const u8 {
-    let challenge = DATA_BUFFER.lock().unwrap();
+    let challenge = &DATA_BUFFER;
     challenge.as_ptr()
 }
 
