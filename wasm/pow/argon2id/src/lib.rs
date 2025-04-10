@@ -1,22 +1,7 @@
-use anubis::update_nonce;
+use anubis::{DATA_BUFFER, DATA_LENGTH, update_nonce};
 use argon2::Argon2;
 use std::boxed::Box;
 use std::sync::{LazyLock, Mutex};
-
-/// The data buffer is a bit weird in that it doesn't have an explicit length as it can
-/// and will change depending on the challenge input that was sent by the server.
-/// However, it can only fit 4096 bytes of data (one amd64 machine page). This is
-/// slightly overkill for the purposes of an Anubis check, but it's fine to assume
-/// that the browser can afford this much ram usage.
-///
-/// Callers should fetch the base data pointer, write up to 4096 bytes, and then
-/// `set_data_length` the number of bytes they have written
-///
-/// This is also functionally a write-only buffer, so it doesn't really matter that
-/// the length of this buffer isn't exposed.
-pub static DATA_BUFFER: LazyLock<Box<[u8; 4096]>> = LazyLock::new(|| Box::new([0; 4096]));
-
-pub static DATA_LENGTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0));
 
 /// SHA-256 hashes are 32 bytes (256 bits). These are stored in static buffers due to the
 /// fact that you cannot easily pass data from host space to WebAssembly space.
@@ -188,16 +173,4 @@ pub extern "C" fn verification_hash_ptr() -> *const u8 {
 #[unsafe(no_mangle)]
 pub extern "C" fn verification_hash_size() -> usize {
     VERIFICATION_HASH.lock().unwrap().len()
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn data_ptr() -> *const u8 {
-    let challenge = &DATA_BUFFER;
-    challenge.as_ptr()
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn set_data_length(len: u32) {
-    let mut data_length = DATA_LENGTH.lock().unwrap();
-    *data_length = len as usize;
 }
