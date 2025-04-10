@@ -1,5 +1,5 @@
 use anubis::update_nonce;
-use sha2::{Digest, Sha256};
+use argon2::Argon2;
 use std::boxed::Box;
 use std::sync::{LazyLock, Mutex};
 
@@ -20,8 +20,7 @@ pub static DATA_LENGTH: LazyLock<Mutex<usize>> = LazyLock::new(|| Mutex::new(0))
 
 /// SHA-256 hashes are 32 bytes (256 bits). These are stored in static buffers due to the
 /// fact that you cannot easily pass data from host space to WebAssembly space.
-pub static RESULT_HASH: LazyLock<Box<Mutex<[u8; 32]>>> =
-    LazyLock::new(|| Box::new(Mutex::new([0; 32])));
+pub static RESULT_HASH: LazyLock<Mutex<[u8; 32]>> = LazyLock::new(|| Mutex::new([0; 32]));
 
 pub static VERIFICATION_HASH: LazyLock<Box<Mutex<[u8; 32]>>> =
     LazyLock::new(|| Box::new(Mutex::new([0; 32])));
@@ -77,17 +76,23 @@ fn compute_hash(nonce: u32) -> [u8; 32] {
     let data = &DATA_BUFFER;
     let data_len = *DATA_LENGTH.lock().unwrap();
     let use_le = data[data_len - 1] >= 128;
+    let mut result = [0u8; 32];
+
+    let nonce = nonce as u64;
 
     let data_slice = &data[..data_len];
 
-    let mut hasher = Sha256::new();
-    hasher.update(data_slice);
-    hasher.update(if use_le {
+    let nonce = if use_le {
         nonce.to_le_bytes()
     } else {
         nonce.to_be_bytes()
-    });
-    hasher.finalize().into()
+    };
+
+    let argon2 = Argon2::default();
+    argon2
+        .hash_password_into(&data_slice, &nonce, &mut result)
+        .unwrap();
+    result
 }
 
 /// This function is the main entrypoint for the Anubis proof of work implementation.
@@ -132,7 +137,7 @@ pub extern "C" fn anubis_work(difficulty: u32, initial_nonce: u32, iterand: u32)
         // is not prime, only some of the threads will be sending the status
         // update and they will get behind the others. this is slightly more
         // complicated but ensures an even distribution between threads.
-        if nonce > old_nonce | 1023 && (nonce >> 10) % iterand == initial_nonce {
+        if nonce > old_nonce + 1023 && (nonce >> 10) % iterand == initial_nonce {
             update_nonce(nonce);
         }
     }

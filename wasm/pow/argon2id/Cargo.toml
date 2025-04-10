@@ -1,5 +1,5 @@
 [package]
-name = "sha256"
+name = "argon2id"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,7 +7,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
-sha2 = "0.10"
+argon2 = "0.5"
 
 anubis = { path = "../../anubis" }
 
