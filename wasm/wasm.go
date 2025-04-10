@@ -111,8 +111,6 @@ func (r *Runner) dataPtr(ctx context.Context) (uint32, error) {
 		return 0, err
 	}
 
-	fmt.Printf("data pointer: 0x%x\n", results[0])
-
 	return uint32(results[0]), nil
 }
 
