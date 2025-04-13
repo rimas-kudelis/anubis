@@ -1,4 +1,3 @@
-use std::boxed::Box;
 use std::sync::{LazyLock, Mutex};
 
 #[cfg(target_arch = "wasm32")]
