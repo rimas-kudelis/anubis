@@ -33,7 +33,7 @@ func BasicSHA256Verify(ctx context.Context, challenge, verify []byte, nonce, dif
 	}
 
 	if !hasLeadingZeroNibbles(data, difficulty) {
-		return false, fmt.Errorf("%w: wanted %d leading zeroes in calculated data %x, but did not get it", ErrWrongChallengeDifficulty, data, difficulty)
+		return false, fmt.Errorf("%w: wanted %d leading zeroes in calculated data %x, but did not get it", ErrWrongChallengeDifficulty, difficulty, data)
 	}
 
 	if !hasLeadingZeroNibbles(verify, difficulty) {

@@ -498,7 +498,7 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 	validator, ok := s.validators[string(rule.Challenge.Algorithm)]
 	if !ok {
 		s.ClearCookie(w)
-		lg.Debug("nonce doesn't parse", "err", err)
+		lg.Debug("no validator found for algorithm", "algorithm", rule.Challenge.Algorithm)
 		templ.Handler(web.Base("Oh noes!", web.ErrorPage(fmt.Sprintf("Internal anubis error has been detected and you cannot proceed. Tried to look up a validator for algorithm %s but wasn't able to find one. Please contact the administrator of this instance of anubis", rule.Challenge.Algorithm), s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
 		return
 	}
