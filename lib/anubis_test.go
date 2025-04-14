@@ -197,7 +197,7 @@ func TestCheckDefaultDifficultyMatchesPolicy(t *testing.T) {
 		fmt.Fprintln(w, "OK")
 	})
 
-	for i := 1; i < 10; i++ {
+	for i := uint32(1); i < 10; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			anubisPolicy, err := LoadPoliciesOrDefault("", i)
 			if err != nil {

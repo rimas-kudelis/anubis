@@ -27,7 +27,7 @@ type ParsedConfig struct {
 
 	Bots              []Bot
 	DNSBL             bool
-	DefaultDifficulty int
+	DefaultDifficulty uint32
 }
 
 func NewParsedConfig(orig config.Config) *ParsedConfig {
@@ -36,7 +36,7 @@ func NewParsedConfig(orig config.Config) *ParsedConfig {
 	}
 }
 
-func ParseConfig(fin io.Reader, fname string, defaultDifficulty int) (*ParsedConfig, error) {
+func ParseConfig(fin io.Reader, fname string, defaultDifficulty uint32) (*ParsedConfig, error) {
 	var c config.Config
 	if err := json.NewDecoder(fin).Decode(&c); err != nil {
 		return nil, fmt.Errorf("can't parse policy config JSON %s: %w", fname, err)
@@ -99,12 +99,12 @@ func ParseConfig(fin io.Reader, fname string, defaultDifficulty int) (*ParsedCon
 			parsedBot.Challenge = &config.ChallengeRules{
 				Difficulty: defaultDifficulty,
 				ReportAs:   defaultDifficulty,
-				Algorithm:  config.AlgorithmFast,
+				Algorithm:  config.AlgorithmArgon2ID,
 			}
 		} else {
 			parsedBot.Challenge = b.Challenge
 			if parsedBot.Challenge.Algorithm == config.AlgorithmUnknown {
-				parsedBot.Challenge.Algorithm = config.AlgorithmFast
+				parsedBot.Challenge.Algorithm = config.AlgorithmArgon2ID
 			}
 		}
 

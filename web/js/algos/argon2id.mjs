@@ -12,7 +12,7 @@ export default function process(
       '(', processTask(), ')()'
     ], { type: 'application/javascript' }));
 
-    const module = await fetch(u("/.within.website/x/cmd/anubis/static/wasm/sha256.wasm"))
+    const module = await fetch(u("/.within.website/x/cmd/anubis/static/wasm/argon2id.wasm"))
       .then(resp => WebAssembly.compileStreaming(resp));
 
     const workers = [];

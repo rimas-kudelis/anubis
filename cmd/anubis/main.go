@@ -40,7 +40,7 @@ import (
 var (
 	bind                     = flag.String("bind", ":8923", "network address to bind HTTP to")
 	bindNetwork              = flag.String("bind-network", "tcp", "network family to bind HTTP to, e.g. unix, tcp")
-	challengeDifficulty      = flag.Int("difficulty", anubis.DefaultDifficulty, "difficulty of the challenge")
+	challengeDifficulty      = flag.Int("difficulty", int(anubis.DefaultDifficulty), "difficulty of the challenge")
 	cookieDomain             = flag.String("cookie-domain", "", "if set, the top-level domain that the Anubis cookie will be valid for")
 	cookiePartitioned        = flag.Bool("cookie-partitioned", false, "if true, sets the partitioned flag on Anubis cookies, enabling CHIPS support")
 	ed25519PrivateKeyHex     = flag.String("ed25519-private-key-hex", "", "private key used to sign JWTs, if not set a random one will be assigned")
@@ -58,7 +58,7 @@ var (
 	ogPassthrough            = flag.Bool("og-passthrough", false, "enable Open Graph tag passthrough")
 	ogTimeToLive             = flag.Duration("og-expiry-time", 24*time.Hour, "Open Graph tag cache expiration time")
 	extractResources         = flag.String("extract-resources", "", "if set, extract the static resources to the specified folder")
-	webmasterEmail		 = flag.String("webmaster-email", "", "if set, displays webmaster's email on the reject page for appeals")
+	webmasterEmail           = flag.String("webmaster-email", "", "if set, displays webmaster's email on the reject page for appeals")
 )
 
 func keyFromHex(value string) (ed25519.PrivateKey, error) {
@@ -194,7 +194,7 @@ func main() {
 		log.Fatalf("can't make reverse proxy: %v", err)
 	}
 
-	policy, err := libanubis.LoadPoliciesOrDefault(*policyFname, *challengeDifficulty)
+	policy, err := libanubis.LoadPoliciesOrDefault(*policyFname, uint32(*challengeDifficulty))
 	if err != nil {
 		log.Fatalf("can't parse policy file: %v", err)
 	}
@@ -261,7 +261,7 @@ func main() {
 		OGPassthrough:     *ogPassthrough,
 		OGTimeToLive:      *ogTimeToLive,
 		Target:            *target,
-		WebmasterEmail:     *webmasterEmail,
+		WebmasterEmail:    *webmasterEmail,
 	})
 	if err != nil {
 		log.Fatalf("can't construct libanubis.Server: %v", err)

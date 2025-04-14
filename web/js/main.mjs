@@ -1,3 +1,4 @@
+import argon2id from "./algos/argon2id.mjs";
 import fast from "./algos/fast.mjs";
 import slow from "./algos/slow.mjs";
 import sha256 from "./algos/sha256.mjs";
@@ -5,6 +6,7 @@ import { testVideo } from "./video.mjs";
 import { u } from "./xeact.mjs";
 
 const algorithms = {
+  "argon2id": argon2id,
   "fast": fast,
   "slow": slow,
   "sha256": sha256,

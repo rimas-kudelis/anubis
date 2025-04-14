@@ -31,9 +31,11 @@ const (
 type Algorithm string
 
 const (
-	AlgorithmUnknown Algorithm = ""
-	AlgorithmFast    Algorithm = "fast"
-	AlgorithmSlow    Algorithm = "slow"
+	AlgorithmUnknown  Algorithm = ""
+	AlgorithmFast     Algorithm = "fast"
+	AlgorithmSlow     Algorithm = "slow"
+	AlgorithmArgon2ID Algorithm = "argon2id"
+	AlgorithmSHA256   Algorithm = "sha256"
 )
 
 type BotConfig struct {
@@ -101,8 +103,8 @@ func (b BotConfig) Valid() error {
 }
 
 type ChallengeRules struct {
-	Difficulty int       `json:"difficulty"`
-	ReportAs   int       `json:"report_as"`
+	Difficulty uint32    `json:"difficulty"`
+	ReportAs   uint32    `json:"report_as"`
 	Algorithm  Algorithm `json:"algorithm"`
 }
 
@@ -124,7 +126,7 @@ func (cr ChallengeRules) Valid() error {
 	}
 
 	switch cr.Algorithm {
-	case AlgorithmFast, AlgorithmSlow, AlgorithmUnknown:
+	case AlgorithmFast, AlgorithmSlow, AlgorithmArgon2ID, AlgorithmSHA256, AlgorithmUnknown:
 		// do nothing, it's all good
 	default:
 		errs = append(errs, fmt.Errorf("%w: %q", ErrChallengeRuleHasWrongAlgorithm, cr.Algorithm))

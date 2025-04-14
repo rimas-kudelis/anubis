@@ -16,4 +16,4 @@ const StaticPath = "/.within.website/x/cmd/anubis/"
 
 // DefaultDifficulty is the default "difficulty" (number of leading zeroes)
 // that must be met by the client in order to pass the challenge.
-const DefaultDifficulty = 4
+const DefaultDifficulty uint32 = 4

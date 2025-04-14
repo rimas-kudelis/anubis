@@ -1,19 +1,23 @@
 package lib
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"log/slog"
 	"math"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +35,7 @@ import (
 	"github.com/TecharoHQ/anubis/internal/ogtags"
 	"github.com/TecharoHQ/anubis/lib/policy"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
+	"github.com/TecharoHQ/anubis/wasm"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/TecharoHQ/anubis/xess"
 )
@@ -80,7 +85,7 @@ type Options struct {
 	WebmasterEmail string
 }
 
-func LoadPoliciesOrDefault(fname string, defaultDifficulty int) (*policy.ParsedConfig, error) {
+func LoadPoliciesOrDefault(fname string, defaultDifficulty uint32) (*policy.ParsedConfig, error) {
 	var fin io.ReadCloser
 	var err error
 
@@ -122,6 +127,32 @@ func New(opts Options) (*Server, error) {
 		opts:       opts,
 		DNSBLCache: decaymap.New[string, dnsbl.DroneBLResponse](),
 		OGTags:     ogtags.NewOGTagCache(opts.Target, opts.OGPassthrough, opts.OGTimeToLive),
+		validators: map[string]Verifier{
+			"fast": VerifierFunc(BasicSHA256Verify),
+			"slow": VerifierFunc(BasicSHA256Verify),
+		},
+	}
+
+	finfos, err := fs.ReadDir(web.Static, "static/wasm")
+	if err != nil {
+		return nil, fmt.Errorf("[unexpected] can't read any webassembly files in the static folder: %w", err)
+	}
+
+	for _, finfo := range finfos {
+		fin, err := web.Static.Open("static/wasm/" + finfo.Name())
+		if err != nil {
+			return nil, fmt.Errorf("[unexpected] can't read static/wasm/%s: %w", finfo.Name(), err)
+		}
+		defer fin.Close()
+
+		name := strings.TrimSuffix(finfo.Name(), filepath.Ext(finfo.Name()))
+
+		runner, err := wasm.NewRunner(context.Background(), finfo.Name(), fin)
+		if err != nil {
+			return nil, fmt.Errorf("can't load static/wasm/%s: %w", finfo.Name(), err)
+		}
+
+		result.validators[name] = runner
 	}
 
 	mux := http.NewServeMux()
@@ -161,13 +192,15 @@ type Server struct {
 	opts       Options
 	DNSBLCache *decaymap.Impl[string, dnsbl.DroneBLResponse]
 	OGTags     *ogtags.OGTagCache
+
+	validators map[string]Verifier
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.mux.ServeHTTP(w, r)
 }
 
-func (s *Server) challengeFor(r *http.Request, difficulty int) string {
+func (s *Server) challengeFor(r *http.Request, difficulty uint32) string {
 	fp := sha256.Sum256(s.priv.Seed())
 
 	challengeData := fmt.Sprintf(
@@ -404,7 +437,7 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		templ.Handler(web.Base("Oh noes!", web.ErrorPage("Internal Server Error: administrator has misconfigured Anubis. Please contact the administrator and ask them to look for the logs around \"passChallenge\".", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
 		return
 	}
-	lg = lg.With("check_result", cr)
+	lg = lg.With("check_result", cr, "algorithm", rule.Challenge.Algorithm)
 
 	nonceStr := r.FormValue("nonce")
 	if nonceStr == "" {
@@ -436,33 +469,52 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 	response := r.FormValue("response")
 	redir := r.FormValue("redir")
 
-	challenge := s.challengeFor(r, rule.Challenge.Difficulty)
+	responseBytes, err := hex.DecodeString(response)
+	if err != nil {
+		s.ClearCookie(w)
+		lg.Debug("response doesn't parse", "err", err)
+		templ.Handler(web.Base("Oh noes!", web.ErrorPage("invalid response format", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
+		return
+	}
 
-	nonce, err := strconv.Atoi(nonceStr)
+	challenge := s.challengeFor(r, rule.Challenge.Difficulty)
+	challengeBytes, err := hex.DecodeString(challenge)
+	if err != nil {
+		s.ClearCookie(w)
+		lg.Debug("challenge doesn't parse", "err", err)
+		templ.Handler(web.Base("Oh noes!", web.ErrorPage("invalid internal challenge format", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
+		return
+	}
+
+	nonceRaw, err := strconv.ParseUint(nonceStr, 10, 32)
 	if err != nil {
 		s.ClearCookie(w)
 		lg.Debug("nonce doesn't parse", "err", err)
 		templ.Handler(web.Base("Oh noes!", web.ErrorPage("invalid nonce", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
 		return
 	}
+	nonce := uint32(nonceRaw)
 
-	calcString := fmt.Sprintf("%s%d", challenge, nonce)
-	calculated := internal.SHA256sum(calcString)
-
-	if subtle.ConstantTimeCompare([]byte(response), []byte(calculated)) != 1 {
+	validator, ok := s.validators[string(rule.Challenge.Algorithm)]
+	if !ok {
 		s.ClearCookie(w)
-		lg.Debug("hash does not match", "got", response, "want", calculated)
-		templ.Handler(web.Base("Oh noes!", web.ErrorPage("invalid response", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusForbidden)).ServeHTTP(w, r)
-		failedValidations.Inc()
+		lg.Debug("nonce doesn't parse", "err", err)
+		templ.Handler(web.Base("Oh noes!", web.ErrorPage(fmt.Sprintf("Internal anubis error has been detected and you cannot proceed. Tried to look up a validator for algorithm %s but wasn't able to find one. Please contact the administrator of this instance of anubis", rule.Challenge.Algorithm), s.opts.WebmasterEmail)), templ.WithStatus(http.StatusInternalServerError)).ServeHTTP(w, r)
 		return
 	}
 
-	// compare the leading zeroes
-	if !strings.HasPrefix(response, strings.Repeat("0", rule.Challenge.Difficulty)) {
+	ok, err = validator.Verify(r.Context(), challengeBytes, responseBytes, nonce, rule.Challenge.Difficulty)
+	if err != nil {
 		s.ClearCookie(w)
-		lg.Debug("difficulty check failed", "response", response, "difficulty", rule.Challenge.Difficulty)
-		templ.Handler(web.Base("Oh noes!", web.ErrorPage("invalid response", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusForbidden)).ServeHTTP(w, r)
-		failedValidations.Inc()
+		lg.Debug("verification error", "err", err)
+		templ.Handler(web.Base("Oh noes!", web.ErrorPage("Your challenge failed validation. Please go back and try your challenge again", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusBadRequest)).ServeHTTP(w, r)
+		return
+	}
+
+	if !ok {
+		s.ClearCookie(w)
+		lg.Debug("response invalid")
+		templ.Handler(web.Base("Oh noes!", web.ErrorPage("Your challenge failed validation. Please go back and try your challenge again", s.opts.WebmasterEmail)), templ.WithStatus(http.StatusBadRequest)).ServeHTTP(w, r)
 		return
 	}
 
