@@ -5,14 +5,13 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io/fs"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/TecharoHQ/anubis/web"
 )
 
-func abiTest(t *testing.T, fname string, difficulty uint32) {
+func abiTest(t testing.TB, fname string, difficulty uint32) {
 	fin, err := web.Static.Open("static/wasm/" + fname)
 	if err != nil {
 		t.Fatal(err)
@@ -30,31 +29,16 @@ func abiTest(t *testing.T, fname string, difficulty uint32) {
 	fmt.Fprint(h, t.Name())
 	data := h.Sum(nil)
 
-	if n, err := runner.WriteData(ctx, data); err != nil {
-		t.Fatalf("can't write data: %v", err)
-	} else {
-		t.Logf("wrote %d bytes to data segment", n)
-	}
-
-	t0 := time.Now()
-	nonce, err := runner.anubisWork(ctx, difficulty, 0, 1)
+	nonce, hash, mod, err := runner.run(ctx, data, difficulty, 0, 1)
 	if err != nil {
-		t.Fatalf("can't do test work run: %v", err)
-	}
-	t.Logf("got nonce %d in %s", nonce, time.Since(t0))
-
-	hash, err := runner.ReadResult(ctx)
-	if err != nil {
-		t.Fatalf("can't read result: %v", err)
+		t.Fatal(err)
 	}
 
-	t.Logf("got hash %x", hash)
-
-	if err := runner.WriteVerification(ctx, hash); err != nil {
+	if err := runner.writeVerification(ctx, mod, hash); err != nil {
 		t.Fatalf("can't write verification: %v", err)
 	}
 
-	ok, err := runner.anubisValidate(ctx, nonce, difficulty)
+	ok, err := runner.anubisValidate(ctx, mod, nonce, difficulty)
 	if err != nil {
 		t.Fatalf("can't run validation: %v", err)
 	}
@@ -63,7 +47,7 @@ func abiTest(t *testing.T, fname string, difficulty uint32) {
 		t.Error("validation failed")
 	}
 
-	t.Logf("used %d pages of wasm memory (%d bytes)", runner.module.Memory().Size()/63356, runner.module.Memory().Size())
+	t.Logf("used %d pages of wasm memory (%d bytes)", mod.Memory().Size()/63356, mod.Memory().Size())
 }
 
 func TestAlgos(t *testing.T) {
@@ -81,6 +65,8 @@ func TestAlgos(t *testing.T) {
 }
 
 func bench(b *testing.B, fname string, difficulties []uint32) {
+	b.Helper()
+
 	fin, err := web.Static.Open("static/wasm/" + fname)
 	if err != nil {
 		b.Fatal(err)
@@ -98,52 +84,16 @@ func bench(b *testing.B, fname string, difficulties []uint32) {
 	fmt.Fprint(h, "This is an example value that exists only to test the system.")
 	data := h.Sum(nil)
 
-	if n, err := runner.WriteData(ctx, data); err != nil {
-		b.Fatalf("can't write data: %v", err)
-	} else {
-		b.Logf("wrote %d bytes to data segment", n)
-	}
-}
-
-func BenchmarkSHA256(b *testing.B) {
-	fin, err := web.Static.Open("static/wasm/sha256.wasm")
-	if err != nil {
-		b.Fatal(err)
-	}
-	defer fin.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	b.Cleanup(cancel)
-
-	runner, err := NewRunner(ctx, "sha256.wasm", fin)
+	_, _, mod, err := runner.run(ctx, data, 0, 0, 1)
 	if err != nil {
 		b.Fatal(err)
 	}
 
-	h := sha256.New()
-	fmt.Fprint(h, "testificate")
-	data := h.Sum(nil)
-
-	if n, err := runner.WriteData(ctx, data); err != nil {
-		b.Fatalf("can't write data: %v", err)
-	} else {
-		b.Logf("wrote %d bytes to data segment", n)
-	}
-
-	for _, cs := range []struct {
-		Difficulty uint32
-	}{
-		{4},
-		{6},
-		{8},
-		{10},
-		{12},
-		{14},
-		{16},
-	} {
-		b.Run(fmt.Sprintf("difficulty/%d", cs.Difficulty), func(b *testing.B) {
+	for _, difficulty := range difficulties {
+		b.Run(fmt.Sprintf("difficulty/%d", difficulty), func(b *testing.B) {
 			for b.Loop() {
-				difficulty := cs.Difficulty
-				_, err := runner.anubisWork(ctx, difficulty, 0, 1)
+				difficulty := difficulty
+				_, err := runner.anubisWork(ctx, mod, difficulty, 0, 1)
 				if err != nil {
 					b.Fatalf("can't do test work run: %v", err)
 				}
@@ -152,45 +102,61 @@ func BenchmarkSHA256(b *testing.B) {
 	}
 }
 
+func BenchmarkSHA256(b *testing.B) {
+	bench(b, "sha256.wasm", []uint32{4, 6, 8, 10, 12, 14, 16})
+}
+
 func BenchmarkArgon2ID(b *testing.B) {
-	const difficulty = 4 // one nibble, intentionally easy for testing
+	bench(b, "argon2id.wasm", []uint32{4, 6, 8})
+}
 
-	fin, err := web.Static.Open("static/wasm/argon2id.wasm")
-	if err != nil {
-		b.Fatal(err)
-	}
-	defer fin.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
-	b.Cleanup(cancel)
-
-	runner, err := NewRunner(ctx, "argon2id.wasm", fin)
+func BenchmarkValidate(b *testing.B) {
+	fnames, err := fs.ReadDir(web.Static, "static/wasm")
 	if err != nil {
 		b.Fatal(err)
 	}
 
 	h := sha256.New()
-	fmt.Fprint(h, os.Args[0])
+	fmt.Fprint(h, "This is an example value that exists only to test the system.")
 	data := h.Sum(nil)
 
-	if n, err := runner.WriteData(ctx, data); err != nil {
-		b.Fatalf("can't write data: %v", err)
-	} else {
-		b.Logf("wrote %d bytes to data segment", n)
-	}
+	for _, fname := range fnames {
+		fname := fname.Name()
 
-	for _, cs := range []struct {
-		Difficulty uint32
-	}{
-		{4},
-		{6},
-		{8},
-	} {
-		b.Run(fmt.Sprintf("difficulty/%d", cs.Difficulty), func(b *testing.B) {
+		difficulty := uint32(1)
+
+		switch fname {
+		case "sha256.wasm":
+			difficulty = 16
+		}
+
+		b.Run(fname, func(b *testing.B) {
+			fin, err := web.Static.Open("static/wasm/" + fname)
+			if err != nil {
+				b.Fatal(err)
+			}
+			defer fin.Close()
+			ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+			b.Cleanup(cancel)
+
+			runner, err := NewRunner(ctx, fname, fin)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			nonce, hash, mod, err := runner.run(ctx, data, difficulty, 0, 1)
+			if err != nil {
+				b.Fatal(err)
+			}
+
+			if err := runner.writeVerification(ctx, mod, hash); err != nil {
+				b.Fatalf("can't write verification: %v", err)
+			}
+
 			for b.Loop() {
-				difficulty := cs.Difficulty
-				_, err := runner.anubisWork(ctx, difficulty, 0, 1)
+				_, err := runner.anubisValidate(ctx, mod, nonce, difficulty)
 				if err != nil {
-					b.Fatalf("can't do test work run: %v", err)
+					b.Fatalf("can't run validation: %v", err)
 				}
 			}
 		})
