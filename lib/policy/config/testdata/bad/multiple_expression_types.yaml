@@ -1,0 +1,10 @@
+bots:
+- name: multiple-expression-types
+  action: ALLOW
+  expression:
+    and:
+    - userAgent.startsWith("git/") || userAgent.contains("libgit")
+    - >
+      "Git-Protocol" in headers && headers["Git-Protocol"] == "version=2"
+    or:
+    - userAgent.startsWith("evilbot/")
