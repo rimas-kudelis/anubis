@@ -1,0 +1,6 @@
+- name: allow-api-routes
+  action: ALLOW
+  expression:
+    and:
+    - '!(method == "HEAD" || method == "GET")'
+    - path.startsWith("/api/")
