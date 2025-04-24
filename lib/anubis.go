@@ -152,7 +152,11 @@ func New(opts Options) (*Server, error) {
 			return nil, fmt.Errorf("can't load static/wasm/%s: %w", finfo.Name(), err)
 		}
 
-		result.validators[name] = runner
+		var concurrentLimit int64 = 4
+
+		cv := NewConcurrentVerifier(runner, concurrentLimit)
+
+		result.validators[name] = cv
 	}
 
 	mux := http.NewServeMux()

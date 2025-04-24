@@ -6,6 +6,8 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
+
+	"golang.org/x/sync/semaphore"
 )
 
 var (
@@ -67,4 +69,24 @@ func hasLeadingZeroNibbles(data []byte, n uint32) bool {
 		}
 	}
 	return count >= n
+}
+
+type ConcurrentVerifier struct {
+	Verifier
+	sem *semaphore.Weighted
+}
+
+func NewConcurrentVerifier(v Verifier, maxConcurrent int64) *ConcurrentVerifier {
+	return &ConcurrentVerifier{
+		Verifier: v,
+		sem:      semaphore.NewWeighted(maxConcurrent),
+	}
+}
+
+func (cv *ConcurrentVerifier) Verify(ctx context.Context, challenge, verify []byte, nonce, difficulty uint32) (bool, error) {
+	if err := cv.sem.Acquire(ctx, 1); err != nil {
+		return false, fmt.Errorf("can't verify solution: %w", err)
+	}
+
+	return cv.Verifier.Verify(ctx, challenge, verify, nonce, difficulty)
 }
