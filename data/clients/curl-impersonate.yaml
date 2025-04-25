@@ -1,0 +1,32 @@
+- name: curl-impersonate
+  action: CHALLENGE
+  expression:
+    any:
+    - >
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == " Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == " Not A;Brand";v="99", "Chromium";v="101", "Google Chrome";v="101"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Google Chrome";v="107", "Chromium";v="107", "Not=A?Brand";v="24"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Chromium";v="110", "Not A(Brand";v="24", "Google Chrome";v="110"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Chromium";v="116", "Not)A;Brand";v="24", "Google Chrome";v="116"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == "Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == " Not A;Brand";v="99", "Chromium";v="101", "Microsoft Edge";v="101"
+    - > 
+      "Sec-Ch-Ua" in headers && headers["Sec-Ch-Ua"] == " Not A;Brand";v="99", "Chromium";v="99", "Microsoft Edge";v="99"

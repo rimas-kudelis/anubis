@@ -13,6 +13,12 @@
       "import": "(data)/bots/us-ai-scraper.yaml"
     },
     {
+      "import": "(data)/bots/aggressive-brazilian-scrapers.yaml"
+    },
+    {
+      "import": "(data)/clients/curl-impersonate.yaml"
+    },
+    {
       "import": "(data)/crawlers/googlebot.yaml"
     },
     {
