@@ -1,7 +1,14 @@
 - name: allow-git-clients
   action: ALLOW
   expression:
-    and:
-    - userAgent.startsWith("git/") || userAgent.contains("libgit") || userAgent.startsWith("go-git") || userAgent.startsWith("JGit/") || userAgent.startsWith("JGit-")
+    all:
     - >
-      "Git-Protocol" in headers && headers["Git-Protocol"] == "version=2"
+      (  
+        userAgent.startsWith("git/") ||
+        userAgent.contains("libgit") ||
+        userAgent.startsWith("go-git") ||
+        userAgent.startsWith("JGit/") ||
+        userAgent.startsWith("JGit-")
+      )
+    - '"Git-Protocol" in headers'
+    - headers["Git-Protocol"] == "version=2"

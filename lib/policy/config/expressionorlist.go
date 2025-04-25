@@ -14,8 +14,8 @@ var (
 
 type ExpressionOrList struct {
 	Expression string   `json:"-"`
-	And        []string `json:"and"`
-	Or         []string `json:"or"`
+	All        []string `json:"all"`
+	Any        []string `json:"any"`
 }
 
 func (eol ExpressionOrList) Equal(rhs *ExpressionOrList) bool {
@@ -23,11 +23,11 @@ func (eol ExpressionOrList) Equal(rhs *ExpressionOrList) bool {
 		return false
 	}
 
-	if !slices.Equal(eol.And, rhs.And) {
+	if !slices.Equal(eol.All, rhs.All) {
 		return false
 	}
 
-	if !slices.Equal(eol.Or, rhs.Or) {
+	if !slices.Equal(eol.Any, rhs.Any) {
 		return false
 	}
 
@@ -44,8 +44,8 @@ func (eol *ExpressionOrList) UnmarshalJSON(data []byte) error {
 		if err := json.Unmarshal(data, &val); err != nil {
 			return err
 		}
-		eol.And = val.And
-		eol.Or = val.Or
+		eol.All = val.All
+		eol.Any = val.Any
 
 		return nil
 	}
@@ -54,7 +54,7 @@ func (eol *ExpressionOrList) UnmarshalJSON(data []byte) error {
 }
 
 func (eol *ExpressionOrList) Valid() error {
-	if len(eol.And) != 0 && len(eol.Or) != 0 {
+	if len(eol.All) != 0 && len(eol.Any) != 0 {
 		return ErrExpressionCantHaveBoth
 	}
 

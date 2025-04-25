@@ -24,10 +24,10 @@ func TestExpressionOrListUnmarshal(t *testing.T) {
 		{
 			name: "object-and",
 			inp: `{
-			"and": ["\"User-Agent\" in headers"]
+			"all": ["\"User-Agent\" in headers"]
 			}`,
 			result: &ExpressionOrList{
-				And: []string{
+				All: []string{
 					`"User-Agent" in headers`,
 				},
 			},
@@ -35,10 +35,10 @@ func TestExpressionOrListUnmarshal(t *testing.T) {
 		{
 			name: "object-or",
 			inp: `{
-			"or": ["\"User-Agent\" in headers"]
+			"any": ["\"User-Agent\" in headers"]
 			}`,
 			result: &ExpressionOrList{
-				Or: []string{
+				Any: []string{
 					`"User-Agent" in headers`,
 				},
 			},
@@ -46,8 +46,8 @@ func TestExpressionOrListUnmarshal(t *testing.T) {
 		{
 			name: "both-or-and",
 			inp: `{
-			"and": ["\"User-Agent\" in headers"],
-			"or": ["\"User-Agent\" in headers"]
+			"all": ["\"User-Agent\" in headers"],
+			"any": ["\"User-Agent\" in headers"]
 			}`,
 			validErr: ErrExpressionCantHaveBoth,
 		},

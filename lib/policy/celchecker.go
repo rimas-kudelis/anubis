@@ -28,18 +28,23 @@ func NewCELChecker(cfg *config.ExpressionOrList) (*CELChecker, error) {
 	if cfg.Expression != "" {
 		src = cfg.Expression
 		var iss *cel.Issues
-		ast, iss = env.Compile(src)
+		interm, iss := env.Compile(src)
+		if iss != nil {
+			return nil, iss.Err()
+		}
+
+		ast, iss = env.Check(interm)
 		if iss != nil {
 			return nil, iss.Err()
 		}
 	}
 
-	if len(cfg.And) != 0 {
-		ast, err = expressions.Join(env, expressions.JoinAnd, cfg.And...)
+	if len(cfg.All) != 0 {
+		ast, err = expressions.Join(env, expressions.JoinAnd, cfg.All...)
 	}
 
-	if len(cfg.Or) != 0 {
-		ast, err = expressions.Join(env, expressions.JoinOr, cfg.Or...)
+	if len(cfg.Any) != 0 {
+		ast, err = expressions.Join(env, expressions.JoinOr, cfg.Any...)
 	}
 
 	if err != nil {
