@@ -43,7 +43,7 @@ bots:
 #     report_as: 4    # lie to the operator
 #     algorithm: slow # intentionally waste CPU cycles and time
 
-# Challenge things that claim to be a browser but are not
-- import: (data)/common/challenge-browser-like.yaml
+# Challenge clients with "Mozilla" or "Opera" in their user-agent string
+- import: (data)/common/legacy-challenge-everything.yaml
 
 dnsbl: false
