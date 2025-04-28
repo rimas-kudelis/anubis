@@ -1,5 +1,4 @@
 # Generic catchall rule
 - name: generic-browser
-  user_agent_regex: >-
-    Mozilla|Opera
+  expression: userAgent.isBrowserLike()
   action: CHALLENGE

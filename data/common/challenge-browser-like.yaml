@@ -5,12 +5,4 @@
       all:
       - '"X-Http-Version" in headers'
       - headers["X-Http-Version"] == "HTTP/1.1"
-      - >-
-        (  userAgent.contains("Mozilla")
-        || userAgent.contains("Opera")
-        || userAgent.contains("Safari")
-        || userAgent.contains("Edge")
-        || userAgent.contains("Gecko")
-        || userAgent.contains("Windows")
-        || userAgent.contains("Linux")
-        )
+      - userAgent.isBrowserLike()
