@@ -83,9 +83,12 @@ data:
 
 Edit your `server` blocks to add the following headers:
 
-```nginx
+```python
+# diff-add
 proxy_set_header Host $host;
+# diff-add
 proxy_set_header X-Real-IP $remote_addr;
+# diff-add
 proxy_set_header X-Http-Version $server_protocol;
 ```
 

@@ -1,0 +1,25 @@
+# Expression-based rule matching
+
+- Anubis offers the ability to use [Common Expression Language (CEL)](https://cel.dev) for advanced rule matching
+- A brief summary of CEL
+  - Imagine the rule as the contents of a function body in programming or the WHERE clause in SQL
+  - This is an advanced feature and it is easy to get yourself into trouble with it
+  - Link to the spec, mention docs are WIP
+- Variables exposed to Anubis expressions
+  - `remoteAddress` -> string IP of client
+  - `host` -> string HTTP/TLS hostname
+  - `method` -> string HTTP method
+  - `userAgent` -> string User-Agent header
+  - `path` -> string HTTP request path
+  - `query` -> map[string]string URL key values
+  - `headers` -> map[string]string HTTP request headers
+  - Load average:
+    - `load_1m` -> system load in the last minute
+    - `load_5m` -> system load in the last 5 minutes
+    - `load_15m` -> system load in the last 15 minutes
+- Functions exposed to Anubis expressions
+  - `userAgent.isBrowserLike` -> returns true if the userAgent is like a browser
+- Life advice
+  - When in doubt, throw a CHALLENGE over a DENY. CHALLENGE makes it more easy to renege
+- Example usage
+  - [How to make Anubis much less aggressive](../less-aggressive.mdx)
