@@ -13,6 +13,7 @@ import (
 	"github.com/TecharoHQ/anubis/data"
 	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/lib/policy"
+	"github.com/TecharoHQ/anubis/lib/policy/config"
 )
 
 func loadPolicies(t *testing.T, fname string) *policy.ParsedConfig {
@@ -390,6 +391,45 @@ func TestBasePrefix(t *testing.T) {
 			if ckie.Path != expectedPath {
 				t.Errorf("cookie path is wrong, wanted %s, got: %s", expectedPath, ckie.Path)
 			}
+		})
+	}
+}
+
+func TestCloudflareWorkersRule(t *testing.T) {
+	for _, variant := range []string{"cel", "header"} {
+		t.Run(variant, func(t *testing.T) {
+			pol := loadPolicies(t, "./testdata/cloudflare-workers-"+variant+".yaml")
+
+			h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				fmt.Fprintln(w, "OK")
+			})
+
+			s, err := New(Options{
+				Next:           h,
+				Policy:         pol,
+				ServeRobotsTXT: true,
+			})
+			if err != nil {
+				t.Fatalf("can't construct libanubis.Server: %v", err)
+			}
+
+			t.Run("no-cf-worker-header", func(t *testing.T) {
+				req, err := http.NewRequest(http.MethodGet, "/", nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				req.Header.Add("X-Real-Ip", "127.0.0.1")
+
+				cr, _, err := s.check(req)
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if cr.Rule != config.RuleAllow {
+					t.Errorf("rule is wrong, wanted %s, got: %s", config.RuleAllow, cr.Rule)
+				}
+			})
 		})
 	}
 }
