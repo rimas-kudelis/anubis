@@ -1,0 +1,16 @@
+  # Challenge anything with HTTP/1.1 that claims to be a browser
+  - name: challenge-lies-browser-but-http-1.1
+    action: CHALLENGE
+    expression:
+      all:
+      - '"X-Http-Version" in headers'
+      - headers["X-Http-Version"] == "HTTP/1.1"
+      - >-
+        (  userAgent.contains("Mozilla")
+        || userAgent.contains("Opera")
+        || userAgent.contains("Safari")
+        || userAgent.contains("Edge")
+        || userAgent.contains("Gecko")
+        || userAgent.contains("Windows")
+        || userAgent.contains("Linux")
+        )

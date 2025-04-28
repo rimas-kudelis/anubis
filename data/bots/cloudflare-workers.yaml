@@ -1,4 +1,3 @@
 - name: cloudflare-workers
-  headers_regex:
-    CF-Worker: .*
-  action: DENY
+  expression: '"Cf-Worker" in headers'
+  action: CHALLENGE
