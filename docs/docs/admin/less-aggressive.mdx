@@ -1,0 +1,94 @@
+# How to make Anubis much less aggressive
+
+Out of the box, Anubis has fairly paranoid defaults. It's designed to stop the bleeding now, so it defaults to a global "challenge everything" rule. This does work, but comes at significant user experience cost if users disable JavaScript or run plugins that interfere with JavaScript execution.
+
+Anubis ships with a rule named `challenge-lies-browser-but-http-1.1` that changes the default behavior to fire much less often. This works on top of [expression support](./configuration/expressions.mdx) to allow you to block the worst of the bad while leaving normal users able to access the website. This requires integration with your HTTP load balancer.
+
+You can import this rule by replacing the `generic-browser` rule with the following:
+
+```yaml
+- import: (data)/common/challenge-browser-like.yaml
+```
+
+## The new rule
+
+Previously Anubis aggressively challenged everything that had "Mozilla" in its User-Agent string. The rule has been amended to this set of heuristics:
+
+1. If the request headers contain `X-Http-Protocol`
+1. AND if the request header `X-Http-Protocol` is `HTTP/1.1`
+1. AND if the request headers contain `X-Forwarded-Proto`
+1. AND if the request header `X-Forwarded-Proto` is `https`
+1. AND if the request's User-Agent string is similar to that of a browser
+1. THEN throw a challenge.
+
+This means that users that are using up to date browsers will automatically get through without having to pass a challenge.
+
+## Apache
+
+Ensure [`mod_http2`](https://httpd.apache.org/docs/2.4/mod/mod_http2.html) is loaded.
+
+Make sure that your HTTPS VirtualHost has the right settings for Anubis in place:
+
+```python
+# Enable HTTP/2 support so Anubis can issues challenges for HTTP/1.1 clients
+Protocols h2 http/1.1
+
+# These headers need to be set or else Anubis will
+# throw an "admin misconfiguration" error.
+# diff-add
+RequestHeader set "X-Real-Ip" expr=%{REMOTE_ADDR}
+# diff-add
+RequestHeader set "X-Forwarded-Proto" "https"
+# diff-add
+RequestHeader set "X-Http-Version" "%{SERVER_PROTOCOL}s"
+```
+
+## Caddy
+
+Make sure that your [`reverse_proxy` has the right headers configured](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#headers):
+
+```python
+ellenjoe.int.within.lgbt {
+  # ...
+  # diff-remove
+  reverse_proxy http://localhost:3000
+  # diff-add
+  reverse_proxy http://localhost:3000 {
+    # diff-add
+    header_up X-Real-Ip {remote_host}
+    # diff-add
+    header_up X-Http-Version {http.request.proto}
+  # diff-add
+  }
+  # ...
+}
+```
+
+## ingress-nginx
+
+Edit your `ingress-nginx-controller` ConfigMap:
+
+```yaml
+data:
+  # ...
+  # diff-add
+  location-snippet: |
+    # diff-add
+    proxy_set_header X-Http-Version $server_protocol;
+    # diff-add
+    proxy_set_header X-Tls-Version $ssl_protocol;
+```
+
+## Nginx
+
+Edit your `server` blocks to add the following headers:
+
+```nginx
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Http-Version $server_protocol;
+```
+
+## Traefik
+
+This configuration is not currently supported with Traefik. A Traefik plugin is needed to add the right header.
