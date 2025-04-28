@@ -5,4 +5,6 @@
       all:
       - '"X-Http-Version" in headers'
       - headers["X-Http-Version"] == "HTTP/1.1"
+      - '"X-Forwarded-Proto" in headers'
+      - headers["X-Forwarded-Proto"] == "https"
       - userAgent.isBrowserLike()
