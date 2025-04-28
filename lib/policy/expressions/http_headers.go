@@ -46,6 +46,10 @@ func (h HTTPHeaders) Find(key ref.Val) (ref.Val, bool) {
 		return nil, false
 	}
 
+	if _, ok := h.Header[string(k)]; !ok {
+		return nil, false
+	}
+
 	return types.String(strings.Join(h.Header.Values(string(k)), ",")), true
 }
 

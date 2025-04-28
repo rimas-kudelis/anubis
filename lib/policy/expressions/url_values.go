@@ -49,6 +49,10 @@ func (u URLValues) Find(key ref.Val) (ref.Val, bool) {
 		return nil, false
 	}
 
+	if _, ok := u.Values[string(k)]; !ok {
+		return nil, false
+	}
+
 	return types.String(strings.Join(u.Values[string(k)], ",")), true
 }
 
