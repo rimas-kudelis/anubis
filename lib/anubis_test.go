@@ -83,7 +83,7 @@ func TestCVE2025_24369(t *testing.T) {
 		Next:   http.NewServeMux(),
 		Policy: pol,
 
-		CookieDomain:      "local.cetacean.club",
+		CookieDomain:      ".local.cetacean.club",
 		CookiePartitioned: true,
 		CookieName:        t.Name(),
 	})

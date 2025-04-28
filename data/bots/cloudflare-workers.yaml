@@ -1,4 +1,4 @@
 - name: cloudflare-workers
-  expression: >
-    "Cf-Worker" in headers
+  headers_regex:
+    CF-Worker: .*
   action: DENY
