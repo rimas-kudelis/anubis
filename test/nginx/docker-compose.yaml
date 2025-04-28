@@ -1,0 +1,22 @@
+services:
+  httpd:
+    image: xxxtest/nginx
+    build: .
+    volumes:
+      - "../pki/nginx.local.cetacean.club:/etc/techaro/pki/nginx.local.cetacean.club/"
+    ports:
+      - 8080:80
+      - 8443:443
+
+  anubis:
+    image: git.xeserv.us/techaro/anubis:cel
+    environment:
+      BIND: ":3000"
+      TARGET: http://httpdebug:3000
+      POLICY_FNAME: /etc/techaro/anubis/less_paranoid.yaml
+    volumes:
+      - ../anubis_configs:/etc/techaro/anubis
+
+  httpdebug:
+    image: ghcr.io/xe/x/httpdebug
+    pull_policy: always
