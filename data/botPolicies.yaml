@@ -48,6 +48,6 @@ bots:
 
 - name: reject-browsers
   action: DENY
-  expression: userAgent.isBrowser()
+  expression: userAgent.isBrowserLike()
 
 dnsbl: false
