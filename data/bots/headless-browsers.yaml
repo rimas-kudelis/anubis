@@ -1,9 +1,14 @@
 - name: lightpanda
   user_agent_regex: ^LightPanda/.*$
-  action: DENY
+  action: WEIGH
+  weight:
+    adjust: 5
 - name: headless-chrome
   user_agent_regex: HeadlessChrome
-  action: DENY
+  action: WEIGH
+  weight:
+    adjust: 5
 - name: headless-chromium
   user_agent_regex: HeadlessChromium
-  action: DENY
+  weight:
+    adjust: 5

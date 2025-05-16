@@ -65,6 +65,7 @@ var (
 	ogCacheConsiderHost      = flag.Bool("og-cache-consider-host", false, "enable or disable the use of the host in the Open Graph tag cache")
 	extractResources         = flag.String("extract-resources", "", "if set, extract the static resources to the specified folder")
 	webmasterEmail           = flag.String("webmaster-email", "", "if set, displays webmaster's email on the reject page for appeals")
+	valkeyURL                = flag.String("valkey-url", "", "Valkey URL for Anubis' state layer")
 )
 
 func keyFromHex(value string) (ed25519.PrivateKey, error) {

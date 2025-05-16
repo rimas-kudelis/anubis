@@ -26,6 +26,7 @@ import (
 	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/internal/dnsbl"
 	"github.com/TecharoHQ/anubis/internal/ogtags"
+	"github.com/TecharoHQ/anubis/internal/store/valkey"
 	"github.com/TecharoHQ/anubis/lib/policy"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 )
@@ -68,6 +69,7 @@ type Server struct {
 	pub        ed25519.PublicKey
 	opts       Options
 	cookieName string
+	store      *valkey.Store
 }
 
 func (s *Server) challengeFor(r *http.Request, difficulty int) string {
@@ -233,6 +235,10 @@ func (s *Server) MakeChallenge(w http.ResponseWriter, r *http.Request) {
 	lg = lg.With("check_result", cr)
 	challenge := s.challengeFor(r, rule.Challenge.Difficulty)
 
+	if s.store != nil {
+		s.store.Increment(r.Context(), []string{"pass_rate", "User-Agent", r.UserAgent(), "challenges_issued"})
+	}
+
 	err = encoder.Encode(struct {
 		Rules     *config.ChallengeRules `json:"rules"`
 		Challenge string                 `json:"challenge"`
@@ -325,6 +331,9 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		s.ClearCookie(w)
 		lg.Debug("hash does not match", "got", response, "want", calculated)
 		s.respondWithStatus(w, r, "invalid response", http.StatusForbidden)
+		if s.store != nil {
+			s.store.Increment(r.Context(), []string{"pass_rate", "User-Agent", r.UserAgent(), "fail"})
+		}
 		failedValidations.Inc()
 		return
 	}
@@ -334,6 +343,9 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		s.ClearCookie(w)
 		lg.Debug("difficulty check failed", "response", response, "difficulty", rule.Challenge.Difficulty)
 		s.respondWithStatus(w, r, "invalid response", http.StatusForbidden)
+		if s.store != nil {
+			s.store.Increment(r.Context(), []string{"pass_rate", "User-Agent", r.UserAgent(), "fail"})
+		}
 		failedValidations.Inc()
 		return
 	}
@@ -370,6 +382,10 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		Path:        cookiePath,
 	})
 
+	if s.store != nil {
+		s.store.Increment(r.Context(), []string{"pass_rate", "User-Agent", r.UserAgent(), "pass"})
+	}
+
 	challengesValidated.Inc()
 	lg.Debug("challenge passed, redirecting to app")
 	http.Redirect(w, r, redir, http.StatusFound)
@@ -399,6 +415,8 @@ func (s *Server) check(r *http.Request) (policy.CheckResult, *policy.Bot, error)
 		return decaymap.Zilch[policy.CheckResult](), nil, fmt.Errorf("[misconfiguration] %q is not an IP address", host)
 	}
 
+	weight := 0
+
 	for _, b := range s.policy.Bots {
 		match, err := b.Rules.Check(r)
 		if err != nil {
@@ -406,8 +424,25 @@ func (s *Server) check(r *http.Request) (policy.CheckResult, *policy.Bot, error)
 		}
 
 		if match {
-			return cr("bot/"+b.Name, b.Action), &b, nil
+			switch b.Action {
+			case config.RuleDeny, config.RuleAllow, config.RuleBenchmark:
+				return cr("bot/"+b.Name, b.Action), &b, nil
+			case config.RuleChallenge:
+				weight += 5
+			case config.RuleWeigh:
+				weight += b.Weight.Adjust
+			}
 		}
+	}
+
+	if weight < 0 {
+		return cr("weight/okay", config.RuleAllow), &policy.Bot{
+			Challenge: &config.ChallengeRules{
+				Difficulty: s.policy.DefaultDifficulty,
+				ReportAs:   s.policy.DefaultDifficulty,
+				Algorithm:  config.AlgorithmFast,
+			},
+		}, nil
 	}
 
 	return cr("default/allow", config.RuleAllow), &policy.Bot{

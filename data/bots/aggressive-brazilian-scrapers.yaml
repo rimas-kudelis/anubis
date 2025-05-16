@@ -1,5 +1,5 @@
-- name: deny-aggressive-brazilian-scrapers
-  action: DENY
+- name: aggressive-brazilian-scrapers
+  action: WEIGH
   expression:
     any:
     # Internet Explorer should be out of support
@@ -18,11 +18,9 @@
     - userAgent.contains("Win 9x")
     # Amazon does not have an Alexa Toolbar.
     - userAgent.contains("Alexa Toolbar")
-- name: challenge-aggressive-brazilian-scrapers
-  action: CHALLENGE
-  expression:
-    any:
     # This is not released, even Windows 11 calls itself Windows 10
     - userAgent.contains("Windows NT 11.0")
     # iPods are not in common use
     - userAgent.contains("iPod")
+  weight:
+    adjust: 10

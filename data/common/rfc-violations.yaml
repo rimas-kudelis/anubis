@@ -1,3 +1,5 @@
 - name: no-user-agent-string
-  action: DENY
+  action: WEIGH
   expression: userAgent == ""
+  weight:
+    adjust: 10

@@ -48,7 +48,16 @@ bots:
 - name: generic-browser
   user_agent_regex: >-
     Mozilla|Opera
-  action: CHALLENGE
+  action: WEIGH
+  weight:
+    adjust: 5
+
+- name: high-pass-rate
+  pass_rate:
+    rate: 0.8
+  action: WEIGH
+  weight:
+    adjust: -15
 
 dnsbl: false
 

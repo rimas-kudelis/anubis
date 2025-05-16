@@ -65,6 +65,10 @@ func (s *Server) RenderIndex(w http.ResponseWriter, r *http.Request, rule *polic
 		return
 	}
 
+	if s.store != nil {
+		s.store.Increment(r.Context(), []string{"pass_rate", "User-Agent", r.UserAgent(), "challenges_issued"})
+	}
+
 	handler := internal.NoStoreCache(templ.Handler(
 		component,
 		templ.WithStatus(s.opts.Policy.StatusCodes.Challenge),
