@@ -6,6 +6,7 @@ require (
 	github.com/TecharoHQ/thoth-proto v0.2.0
 	github.com/a-h/templ v0.3.865
 	github.com/facebookgo/flagenv v0.0.0-20160425205200-fcd59fca7456
+	github.com/gaissmai/bart v0.20.4
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/google/cel-go v0.25.0
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/prometheus v1.0.1
