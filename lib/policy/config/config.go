@@ -91,7 +91,9 @@ func (b BotConfig) Valid() error {
 	allFieldsEmpty := b.UserAgentRegex == nil &&
 		b.PathRegex == nil &&
 		len(b.RemoteAddr) == 0 &&
-		len(b.HeadersRegex) == 0
+		len(b.HeadersRegex) == 0 &&
+		b.ASNs == nil &&
+		b.GeoIP == nil
 
 	if allFieldsEmpty && b.Expression == nil {
 		errs = append(errs, ErrBotMustHaveUserAgentOrPath)

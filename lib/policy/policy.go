@@ -119,6 +119,15 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 			cl = append(cl, tc.ASNCheckerFor(b.ASNs.Match))
 		}
 
+		if b.GeoIP != nil {
+			if !hasThothClient {
+				validationErrs = append(validationErrs, fmt.Errorf("%w: %w", ErrMisconfiguration, ErrNoThothClient))
+				continue
+			}
+
+			cl = append(cl, tc.GeoIPCheckerFor(b.GeoIP.Countries))
+		}
+
 		if b.Challenge == nil {
 			parsedBot.Challenge = &config.ChallengeRules{
 				Difficulty: defaultDifficulty,

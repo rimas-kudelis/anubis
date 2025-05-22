@@ -16,7 +16,7 @@ type GeoIPChecker struct {
 }
 
 func (gipc *GeoIPChecker) Check(r *http.Request) (bool, error) {
-	ctx, cancel := context.WithTimeout(r.Context(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(r.Context(), 500*time.Millisecond)
 	defer cancel()
 
 	ipInfo, err := gipc.iptoasn.Lookup(ctx, &iptoasnv1.LookupRequest{
@@ -24,6 +24,10 @@ func (gipc *GeoIPChecker) Check(r *http.Request) (bool, error) {
 	})
 	if err != nil {
 		return false, err
+	}
+
+	if !ipInfo.GetAnnounced() {
+		return false, nil
 	}
 
 	_, ok := gipc.countries[strings.ToLower(ipInfo.GetCountryCode())]

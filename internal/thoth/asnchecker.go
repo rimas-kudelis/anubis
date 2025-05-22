@@ -15,7 +15,7 @@ type ASNChecker struct {
 }
 
 func (asnc *ASNChecker) Check(r *http.Request) (bool, error) {
-	ctx, cancel := context.WithTimeout(r.Context(), 50*time.Millisecond)
+	ctx, cancel := context.WithTimeout(r.Context(), 500*time.Millisecond)
 	defer cancel()
 
 	ipInfo, err := asnc.iptoasn.Lookup(ctx, &iptoasnv1.LookupRequest{
@@ -23,6 +23,10 @@ func (asnc *ASNChecker) Check(r *http.Request) (bool, error) {
 	})
 	if err != nil {
 		return false, err
+	}
+
+	if !ipInfo.GetAnnounced() {
+		return false, nil
 	}
 
 	_, ok := asnc.asns[uint32(ipInfo.GetAsNumber())]
