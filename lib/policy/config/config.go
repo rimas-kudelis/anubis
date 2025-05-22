@@ -51,14 +51,16 @@ const (
 )
 
 type BotConfig struct {
-	UserAgentRegex *string           `json:"user_agent_regex"`
-	PathRegex      *string           `json:"path_regex"`
-	HeadersRegex   map[string]string `json:"headers_regex"`
-	Expression     *ExpressionOrList `json:"expression"`
+	UserAgentRegex *string           `json:"user_agent_regex,omitempty"`
+	PathRegex      *string           `json:"path_regex,omitempty"`
+	HeadersRegex   map[string]string `json:"headers_regex,omitempty"`
+	Expression     *ExpressionOrList `json:"expression,omitempty"`
 	Challenge      *ChallengeRules   `json:"challenge,omitempty"`
+	GeoIP          *GeoIP            `json:"geoip,omitempty"`
+	ASNs           *ASNs             `json:"asns,omitempty"`
 	Name           string            `json:"name"`
 	Action         Rule              `json:"action"`
-	RemoteAddr     []string          `json:"remote_addresses"`
+	RemoteAddr     []string          `json:"remote_addresses,omitempty"`
 }
 
 func (b BotConfig) Zero() bool {
