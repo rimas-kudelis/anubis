@@ -11,13 +11,13 @@ The biggest source of prior art is [FoxIO's JA4H fingerprinting method](https://
 The fingerprint consists of four concatenated components:
 
 ```text
-<thr1_head>_<thr1_lang>_<thr1_sec>_<thr1_all>
+<thr1_head>_<thr1_lang>_<thr1_sec>_<thr1_ua>_<thr1_enc>
 ```
 
 Example:
 
 ```text
-get20cr1004_enca-d6b272e5b_sec-a9649072c_2a347fcf7
+get201004_enca-d6b272e5b_sec-a9649072c_2a347fcf7_zs
 ```
 
 Each component is described below:
@@ -28,15 +28,14 @@ Overall request summary of method, protocol, and header counts:
 
 - First three letters of the HTTP method, lowercased (e.g. get, pos).
 - HTTP protocol version formatted in two digits (`10` for HTTP/1.0, `11` for HTTP/1.1, `20` for HTTP/2, `30` for HTTP/3 etc.).
-- Single letter indicating if the request has cookies: `c` if present, `n` if not.
-- Single letter indicating Referer header presence: `r` if present, `n` if absent.
+  - If present, prefer the HTTP protocol version in `X-Http-Version`.
 - Number of HTTP headers sent by the client, zero-padded to two digits (e.g. `10`).
 - Number of `Sec-*` headers sent by the client, zero-padded to two digits (e.g. `04`).
 
 Example:
 
 ```text
-get20cr1004
+get201004
 ```
 
 ### `thr1_lang`
@@ -69,7 +68,7 @@ thr1_sec = "sec-" + HASH9
 
 Where:
 
-- Collect **all headers whose names start with `sec-` (case-insensitive)**.
+- Collect **all headers whose names start with `sec-` (case-insensitive)**, excluding `Sec-Fetch-User`.
 - For each header:
 
   1. Normalize the header name by lowercasing.
@@ -156,32 +155,48 @@ sec-fetch-mode:navigate
 ua:Chromium/123,Google Chrome/123
 ```
 
-### `thr1_all`
+### `thr1_ua`
 
-A hash of the canonicalized form of request headers.
-
-To construct a `tlr1_all`:
-
-1. Collect all header keys excluding:
-
-- `Cookie`
-- `Referer`
-- `User-Agent`
-- Any header starting with `X-`
-
-2. Sort header keys by lowercase name.
-3. Serialize as:
-
-   ```text
-   name:value
-   ```
-
-   Joined by newlines.
-
-4. Compute the SHA-256 checksum of that string and take the first 9 hex digits.
+SHA256 fingerprint of the `User-Agent` string, taking the first 9 hex digits.
 
 Example output:
 
 ```text
 2a347fcf7
 ```
+
+### `thr1_enc`
+
+Here’s the updated spec and Go implementation for the `thr1_enc` (compression) component, now including:
+
+- **Most preferred compression encoding** (`*`, `gzip`, `deflate`, `br`, `zstd`)
+- **Number of encodings declared**, truncated to **two digits** (`01`–`99`, capped)
+
+---
+
+### ✅ `thr1_enc` Spec (Revised)
+
+**Format:**
+
+```
+<preferred_encoding>-<count>
+```
+
+- `preferred_encoding` is the first matching value in this priority order:
+
+  1. `*`
+  2. `gzip`
+  3. `deflate`
+  4. `br`
+  5. `zstd`
+
+- If none match, use `none`
+- `count` is the number of encoding options, zero-padded to 2 digits (max 99)
+
+**Examples:**
+
+- `gzip, deflate` → `gzip-02`
+- `gzip;q=0.9, br;q=0.8` → `gzip-02`
+- `zstd` → `zstd-01`
+- `bogus` → `none-01`
+- _empty_ → `none-00`
