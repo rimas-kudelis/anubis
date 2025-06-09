@@ -196,6 +196,7 @@ qwant
 qwantbot
 rac
 rcvar
+rdb
 redir
 redirectscheme
 relayd
@@ -248,6 +249,7 @@ unixhttpd
 unmarshal
 uvx
 UXP
+valkey
 Varis
 Velen
 vendored
