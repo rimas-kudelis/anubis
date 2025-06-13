@@ -25,5 +25,6 @@ RUN apk -U add ca-certificates mailcap
 COPY --from=build /app/bin/anubis /app/bin/anubis
 
 CMD ["/app/bin/anubis"]
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD [ "/app/bin/anubis", "--healthcheck" ]
 
 LABEL org.opencontainers.image.source="https://github.com/TecharoHQ/anubis"
