@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/TecharoHQ/anubis/internal"
-	"github.com/TecharoHQ/anubis/lib/policy/checker"
+	"github.com/TecharoHQ/anubis/lib/checker"
 	"github.com/gaissmai/bart"
 )
 

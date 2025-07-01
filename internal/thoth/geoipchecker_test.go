@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/TecharoHQ/anubis/internal/thoth"
-	"github.com/TecharoHQ/anubis/lib/policy/checker"
+	"github.com/TecharoHQ/anubis/lib/checker"
 )
 
 var _ checker.Impl = &thoth.GeoIPChecker{}

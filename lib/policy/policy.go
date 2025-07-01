@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/TecharoHQ/anubis/internal/thoth"
-	"github.com/TecharoHQ/anubis/lib/policy/checker"
+	"github.com/TecharoHQ/anubis/lib/checker"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"

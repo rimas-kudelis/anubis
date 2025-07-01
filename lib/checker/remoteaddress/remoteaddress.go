@@ -8,8 +8,8 @@ import (
 	"net/netip"
 
 	"github.com/TecharoHQ/anubis/internal"
+	"github.com/TecharoHQ/anubis/lib/checker"
 	"github.com/TecharoHQ/anubis/lib/policy"
-	"github.com/TecharoHQ/anubis/lib/policy/checker"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/gaissmai/bart"
 )
@@ -18,7 +18,9 @@ var (
 	ErrNoRemoteAddresses = errors.New("remoteaddress: no remote addresses defined")
 )
 
-func init() {}
+func init() {
+	checker.Register("remote_address", Factory{})
+}
 
 type Factory struct{}
 
@@ -50,7 +52,7 @@ func (Factory) Create(inp json.RawMessage) (checker.Impl, error) {
 		table.Insert(cidr)
 	}
 
-	return &RemoteAddrChecker{
+	return &Impl{
 		prefixTable: table,
 		hash:        internal.FastHash(string(inp)),
 	}, nil
@@ -80,12 +82,12 @@ func (fc fileConfig) Valid() error {
 	return nil
 }
 
-type RemoteAddrChecker struct {
+type Impl struct {
 	prefixTable *bart.Lite
 	hash        string
 }
 
-func (rac *RemoteAddrChecker) Check(r *http.Request) (bool, error) {
+func (rac *Impl) Check(r *http.Request) (bool, error) {
 	host := r.Header.Get("X-Real-Ip")
 	if host == "" {
 		return false, fmt.Errorf("%w: header X-Real-Ip is not set", policy.ErrMisconfiguration)
@@ -99,6 +101,6 @@ func (rac *RemoteAddrChecker) Check(r *http.Request) (bool, error) {
 	return rac.prefixTable.Contains(addr), nil
 }
 
-func (rac *RemoteAddrChecker) Hash() string {
+func (rac *Impl) Hash() string {
 	return rac.hash
 }
