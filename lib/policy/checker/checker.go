@@ -10,7 +10,7 @@ import (
 )
 
 type Impl interface {
-	Check(*http.Request) (bool, error)
+	Check(*http.Request) (matches bool, err error)
 	Hash() string
 }
 
