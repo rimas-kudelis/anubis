@@ -14,6 +14,8 @@ import (
 	"github.com/TecharoHQ/anubis/lib/store"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+
+	_ "github.com/TecharoHQ/anubis/lib/store/all"
 )
 
 var (

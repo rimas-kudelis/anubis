@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/TecharoHQ/anubis/lib/policy/config"
-	_ "github.com/TecharoHQ/anubis/lib/store/memory"
+	_ "github.com/TecharoHQ/anubis/lib/store/all"
 )
 
 func TestStoreValid(t *testing.T) {
