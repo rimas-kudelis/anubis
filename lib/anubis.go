@@ -385,8 +385,12 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 	}
 
 	challengeStr := s.challengeFor(r, rule.Challenge.Difficulty)
+	in := &challenge.ValidateInput{
+		Challenge: challengeStr,
+		Rule:      rule,
+	}
 
-	if err := impl.Validate(r, lg, rule, challengeStr); err != nil {
+	if err := impl.Validate(r, lg, in); err != nil {
 		failedValidations.WithLabelValues(rule.Challenge.Algorithm).Inc()
 		var cerr *challenge.Error
 		s.ClearCookie(w, CookieOpts{Path: cookiePath, Host: r.Host})

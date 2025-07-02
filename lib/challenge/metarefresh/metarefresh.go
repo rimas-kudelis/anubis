@@ -9,7 +9,6 @@ import (
 	"github.com/TecharoHQ/anubis"
 	"github.com/TecharoHQ/anubis/lib/challenge"
 	"github.com/TecharoHQ/anubis/lib/localization"
-	"github.com/TecharoHQ/anubis/lib/policy"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/a-h/templ"
 )
@@ -45,7 +44,9 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput)
 	return component, nil
 }
 
-func (i *Impl) Validate(r *http.Request, lg *slog.Logger, rule *policy.Bot, wantChallenge string) error {
+func (i *Impl) Validate(r *http.Request, lg *slog.Logger, in *challenge.ValidateInput) error {
+	wantChallenge := in.Challenge
+
 	gotChallenge := r.FormValue("challenge")
 
 	if subtle.ConstantTimeCompare([]byte(wantChallenge), []byte(gotChallenge)) != 1 {

@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/TecharoHQ/anubis/internal"
+	"github.com/TecharoHQ/anubis/lib/challenge"
 	chall "github.com/TecharoHQ/anubis/lib/challenge"
 	"github.com/TecharoHQ/anubis/lib/localization"
-	"github.com/TecharoHQ/anubis/lib/policy"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/a-h/templ"
 )
@@ -39,7 +39,10 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *chall.IssueInput) (te
 	return component, nil
 }
 
-func (i *Impl) Validate(r *http.Request, lg *slog.Logger, rule *policy.Bot, challenge string) error {
+func (i *Impl) Validate(r *http.Request, lg *slog.Logger, in *challenge.ValidateInput) error {
+	rule := in.Rule
+	challenge := in.Challenge
+
 	nonceStr := r.FormValue("nonce")
 	if nonceStr == "" {
 		return chall.NewError("validate", "invalid response", fmt.Errorf("%w nonce", chall.ErrMissingField))

@@ -48,6 +48,11 @@ type IssueInput struct {
 	OGTags    map[string]string
 }
 
+type ValidateInput struct {
+	Rule      *policy.Bot
+	Challenge string
+}
+
 type Impl interface {
 	// Setup registers any additional routes with the Impl for assets or API routes.
 	Setup(mux *http.ServeMux)
@@ -56,5 +61,5 @@ type Impl interface {
 	Issue(r *http.Request, lg *slog.Logger, in *IssueInput) (templ.Component, error)
 
 	// Validate a challenge, making sure that it passes muster.
-	Validate(r *http.Request, lg *slog.Logger, rule *policy.Bot, challenge string) error
+	Validate(r *http.Request, lg *slog.Logger, in *ValidateInput) error
 }
