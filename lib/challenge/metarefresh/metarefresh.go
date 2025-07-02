@@ -31,11 +31,11 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput)
 
 	q := u.Query()
 	q.Set("redir", r.URL.String())
-	q.Set("challenge", in.Challenge)
+	q.Set("challenge", in.Challenge.RandomData)
 	u.RawQuery = q.Encode()
 
 	loc := localization.GetLocalizer(r)
-	component, err := web.BaseWithChallengeAndOGTags(loc.T("making_sure_not_bot"), page(in.Challenge, u.String(), in.Rule.Challenge.Difficulty, loc), in.Impressum, in.Challenge, in.Rule.Challenge, in.OGTags, loc)
+	component, err := web.BaseWithChallengeAndOGTags(loc.T("making_sure_not_bot"), page(u.String(), in.Rule.Challenge.Difficulty, loc), in.Impressum, in.Challenge.RandomData, in.Rule.Challenge, in.OGTags, loc)
 
 	if err != nil {
 		return nil, fmt.Errorf("can't render page: %w", err)
@@ -45,12 +45,10 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput)
 }
 
 func (i *Impl) Validate(r *http.Request, lg *slog.Logger, in *challenge.ValidateInput) error {
-	wantChallenge := in.Challenge
-
 	gotChallenge := r.FormValue("challenge")
 
-	if subtle.ConstantTimeCompare([]byte(wantChallenge), []byte(gotChallenge)) != 1 {
-		return challenge.NewError("validate", "invalid response", fmt.Errorf("%w: wanted response %s but got %s", challenge.ErrFailed, wantChallenge, gotChallenge))
+	if subtle.ConstantTimeCompare([]byte(in.Challenge.RandomData), []byte(gotChallenge)) != 1 {
+		return challenge.NewError("validate", "invalid response", fmt.Errorf("%w: wanted response %s but got %s", challenge.ErrFailed, in.Challenge.RandomData, gotChallenge))
 	}
 
 	return nil
