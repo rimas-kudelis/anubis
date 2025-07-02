@@ -11,6 +11,7 @@ import (
 	"github.com/TecharoHQ/anubis/internal/thoth"
 	"github.com/TecharoHQ/anubis/lib/policy/checker"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
+	"github.com/TecharoHQ/anubis/lib/store"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -35,9 +36,10 @@ type ParsedConfig struct {
 	OpenGraph         config.OpenGraph
 	DefaultDifficulty int
 	StatusCodes       config.StatusCodes
+	Store             store.Interface
 }
 
-func NewParsedConfig(orig *config.Config) *ParsedConfig {
+func newParsedConfig(orig *config.Config) *ParsedConfig {
 	return &ParsedConfig{
 		orig:        orig,
 		OpenGraph:   orig.OpenGraph,
@@ -55,7 +57,7 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 
 	tc, hasThothClient := thoth.FromContext(ctx)
 
-	result := NewParsedConfig(c)
+	result := newParsedConfig(c)
 	result.DefaultDifficulty = defaultDifficulty
 
 	for _, b := range c.Bots {
@@ -176,6 +178,19 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 		}
 
 		result.Thresholds = append(result.Thresholds, threshold)
+	}
+
+	stFac, ok := store.Get(c.Store.Backend)
+	switch ok {
+	case true:
+		store, err := stFac.Build(ctx, c.Store.Parameters)
+		if err != nil {
+			validationErrs = append(validationErrs, err)
+		}
+
+		result.Store = store
+	case false:
+		validationErrs = append(validationErrs, config.ErrUnknownStoreBackend)
 	}
 
 	if len(validationErrs) > 0 {
