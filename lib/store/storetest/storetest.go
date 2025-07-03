@@ -2,6 +2,7 @@ package storetest
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"testing"
 	"time"
@@ -9,7 +10,16 @@ import (
 	"github.com/TecharoHQ/anubis/lib/store"
 )
 
-func Common(t *testing.T, s store.Interface) {
+func Common(t *testing.T, f store.Factory, config json.RawMessage) {
+	if err := f.Valid(config); err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := f.Build(t.Context(), config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	for _, tt := range []struct {
 		name string
 		doer func(t *testing.T, s store.Interface) error

@@ -1,11 +1,12 @@
 package config_test
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
 	"github.com/TecharoHQ/anubis/lib/policy/config"
-	_ "github.com/TecharoHQ/anubis/lib/store/all"
+	"github.com/TecharoHQ/anubis/lib/store/bbolt"
 )
 
 func TestStoreValid(t *testing.T) {
@@ -24,6 +25,21 @@ func TestStoreValid(t *testing.T) {
 			input: config.Store{
 				Backend: "memory",
 			},
+		},
+		{
+			name: "bbolt backend",
+			input: config.Store{
+				Backend:    "bbolt",
+				Parameters: json.RawMessage(`{"path": "/tmp/foo", "bucket": "bar"}`),
+			},
+		},
+		{
+			name: "bbolt backend no path",
+			input: config.Store{
+				Backend:    "bbolt",
+				Parameters: json.RawMessage(`{"path": "", "bucket": "bar"}`),
+			},
+			err: bbolt.ErrMissingPath,
 		},
 		{
 			name: "unknown backend",

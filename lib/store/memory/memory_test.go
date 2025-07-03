@@ -7,5 +7,5 @@ import (
 )
 
 func TestImpl(t *testing.T) {
-	storetest.Common(t, New(t.Context()))
+	storetest.Common(t, factory{}, nil)
 }

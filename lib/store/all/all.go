@@ -4,5 +4,6 @@
 package all
 
 import (
+	_ "github.com/TecharoHQ/anubis/lib/store/bbolt"
 	_ "github.com/TecharoHQ/anubis/lib/store/memory"
 )

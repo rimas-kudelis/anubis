@@ -20,6 +20,9 @@ var (
 	// ErrCantEncode is returned when a store adaptor cannot encode the value into
 	// the format that the store uses.
 	ErrCantEncode = errors.New("store: can't encode value")
+
+	// ErrBadConfig is returned when a store adaptor's configuration is invalid.
+	ErrBadConfig = errors.New("store: configuration is invalid")
 )
 
 // Interface defines the calls that Anubis uses for storage in a local or remote
@@ -36,9 +39,7 @@ type Interface interface {
 	Set(ctx context.Context, key string, value []byte, expiry time.Duration) error
 }
 
-func z[T any]() T {
-	return *new(T)
-}
+func z[T any]() T { return *new(T) }
 
 type JSON[T any] struct {
 	Underlying Interface

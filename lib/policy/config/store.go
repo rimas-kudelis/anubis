@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/TecharoHQ/anubis/lib/store"
+	_ "github.com/TecharoHQ/anubis/lib/store/all"
 )
 
 var (
