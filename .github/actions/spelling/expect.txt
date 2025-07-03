@@ -44,11 +44,13 @@ cgr
 chainguard
 chall
 challengemozilla
+challengetest
 checkpath
 checkresult
 chibi
 cidranger
 ckie
+ckies
 cloudflare
 Codespaces
 confd
@@ -263,6 +265,7 @@ srv
 stackoverflow
 startprecmd
 stoppostcmd
+storetest
 subgrid
 subr
 subrequest
@@ -328,5 +331,4 @@ yoursite
 Zenos
 zizmor
 zombocom
-Zonbocom
 zos
