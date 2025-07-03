@@ -94,18 +94,19 @@ func (s *Server) getTokenKeyfunc() jwt.Keyfunc {
 func (s *Server) challengeFor(r *http.Request) (*challenge.Challenge, error) {
 	ckies := r.CookiesNamed(anubis.TestCookieName)
 
-	j := store.JSON[challenge.Challenge]{Underlying: s.store}
-
-	for _, ckie := range ckies {
-		chall, err := j.Get(r.Context(), "challenge:"+ckie.Value)
-		if err != nil {
-			return nil, err
-		}
-
-		return &chall, nil
+	if len(ckies) == 0 {
+		return s.issueChallenge(r.Context(), r)
 	}
 
-	return s.issueChallenge(r.Context(), r)
+	j := store.JSON[challenge.Challenge]{Underlying: s.store}
+
+	ckie := ckies[0]
+	chall, err := j.Get(r.Context(), "challenge:"+ckie.Value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &chall, nil
 }
 
 func (s *Server) issueChallenge(ctx context.Context, r *http.Request) (*challenge.Challenge, error) {
