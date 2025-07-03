@@ -16,6 +16,7 @@ aspirational
 atuin
 azuretools
 badregexes
+bbolt
 bdba
 berr
 bingbot
