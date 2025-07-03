@@ -61,9 +61,9 @@ func (m *Impl[K, V]) Delete(key K) bool {
 		return false
 	}
 
-	m.lock.Unlock()
-	delete(m.data, key)
 	m.lock.Lock()
+	delete(m.data, key)
+	m.lock.Unlock()
 
 	return true
 }
