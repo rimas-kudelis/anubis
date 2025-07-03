@@ -50,7 +50,7 @@ func (m *Impl[K, V]) expire(key K) bool {
 
 // Delete a value from the DecayMap by key.
 //
-// If the value does not exist, return false. Otherwise return true after
+// If the value does not exist, return false. Return true after
 // deletion.
 func (m *Impl[K, V]) Delete(key K) bool {
 	m.lock.RLock()
