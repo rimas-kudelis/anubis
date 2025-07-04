@@ -131,7 +131,7 @@ func (s *Server) issueChallenge(ctx context.Context, r *http.Request) (*challeng
 	}
 
 	j := store.JSON[challenge.Challenge]{Underlying: s.store}
-	if err := j.Set(ctx, "challenge:"+id.String(), chall, 5*time.Minute); err != nil {
+	if err := j.Set(ctx, "challenge:"+id.String(), chall, 30*time.Minute); err != nil {
 		return nil, err
 	}
 
