@@ -188,9 +188,9 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 		store, err := stFac.Build(ctx, c.Store.Parameters)
 		if err != nil {
 			validationErrs = append(validationErrs, err)
+		} else {
+			result.Store = store
 		}
-
-		result.Store = store
 	case false:
 		validationErrs = append(validationErrs, config.ErrUnknownStoreBackend)
 	}

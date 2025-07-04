@@ -62,8 +62,7 @@ func (i *impl) cleanupThread(ctx context.Context) {
 	}
 }
 
-// NewDecayMapStore creates a simple in-memory store. This will not scale
-// to multiple Anubis instances.
+// New creates a simple in-memory store. This will not scale to multiple Anubis instances.
 func New(ctx context.Context) store.Interface {
 	result := &impl{
 		store: decaymap.New[string, []byte](),
