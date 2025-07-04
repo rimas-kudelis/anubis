@@ -18,6 +18,8 @@ func TestImpl(t *testing.T) {
 		return
 	}
 
+	testcontainers.SkipIfProviderIsNotHealthy(t)
+
 	req := testcontainers.ContainerRequest{
 		Image:      "valkey/valkey:8",
 		WaitingFor: wait.ForLog("Ready to accept connections"),
