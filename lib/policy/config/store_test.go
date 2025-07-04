@@ -7,6 +7,7 @@ import (
 
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/TecharoHQ/anubis/lib/store/bbolt"
+	"github.com/TecharoHQ/anubis/lib/store/valkey"
 )
 
 func TestStoreValid(t *testing.T) {
@@ -32,6 +33,29 @@ func TestStoreValid(t *testing.T) {
 				Backend:    "bbolt",
 				Parameters: json.RawMessage(`{"path": "/tmp/foo", "bucket": "bar"}`),
 			},
+		},
+		{
+			name: "valkey backend",
+			input: config.Store{
+				Backend:    "valkey",
+				Parameters: json.RawMessage(`{"url": "redis://valkey:6379/0"}`),
+			},
+		},
+		{
+			name: "valkey backend no URL",
+			input: config.Store{
+				Backend:    "valkey",
+				Parameters: json.RawMessage(`{}`),
+			},
+			err: valkey.ErrNoURL,
+		},
+		{
+			name: "valkey backend bad URL",
+			input: config.Store{
+				Backend:    "valkey",
+				Parameters: json.RawMessage(`{"url": "http://anubis.techaro.lol"}`),
+			},
+			err: valkey.ErrBadURL,
 		},
 		{
 			name: "bbolt backend no path",
