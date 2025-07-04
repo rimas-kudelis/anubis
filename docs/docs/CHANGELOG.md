@@ -10,16 +10,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 <!-- This changes the project to: -->
+
 - Add `COOKIE_SECURE` option to set the cookie [Secure flag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies#block_access_to_your_cookies)
 - Sets cookie defaults to use [SameSite: None](https://web.dev/articles/samesite-cookies-explained)
-
 - Determine the `BIND_NETWORK`/`--bind-network` value from the bind address ([#677](https://github.com/TecharoHQ/anubis/issues/677)).
 - Implement localization system. Find locale files in lib/localization/locales/.
 - Implement a [development container](https://containers.dev/) manifest to make contributions easier.
 - Fix dynamic cookie domains functionality ([#731](https://github.com/TecharoHQ/anubis/pull/731)).
 - Add option for custom cookie prefix ([#732](https://github.com/TecharoHQ/anubis/pull/732)).
 - Remove the "Success" interstitial after a proof of work challenge is concluded.
+- Anubis now has the concept of [storage backends](./admin/policies.mdx#storage-backends). These allow you to change how Anubis stores temporary data (in memory, on the disk, or in Valkey). If you run Anubis in an environment where you have a low amount of memory available for Anubis (eg: less than 64 megabytes), be sure to configure the [`bbolt`](./admin/policies.mdx#bbolt) storage backend.
+- The challenge issuance and validation process has been rewritten from scratch. Instead of generating challenge strings from request metadata (under the assumption that the values being compared against are stable), Anubis now generates random data for each challenge. This data is stored in the active [storage backend](./admin/policies.mdx#storage-backends) for up to 30 minutes. Fixes [#564](https://github.com/TecharoHQ/anubis/issues/564), [#746](https://github.com/TecharoHQ/anubis/issues/746), and other similar instances of this issue.
 
 ## v1.20.0: Thancred Waters
 

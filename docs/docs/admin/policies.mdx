@@ -247,7 +247,7 @@ Anubis offers the following storage backends:
 - [`bbolt`](#bbolt) -- An on-disk key/value store backed by [bbolt](https://github.com/etcd-io/bbolt), an embedded key/value database for Go programs
 - [`valkey`](#valkey) -- A remote in-memory key/value database backed by [Valkey](https://valkey.io/) (or another database compatible with the [RESP](https://redis.io/docs/latest/develop/reference/protocol-spec/) protocol)
 
-If no storage backend is set in [the policy file](../policies.mdx), Anubis will use the [`memory`](#memory) backend by default. This is equivalent to the following in the policy file:
+If no storage backend is set in the policy file, Anubis will use the [`memory`](#memory) backend by default. This is equivalent to the following in the policy file:
 
 ```yaml
 store:
