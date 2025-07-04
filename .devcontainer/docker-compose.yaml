@@ -13,5 +13,7 @@ services:
         - "type=registry,ref=ghcr.io/techarohq/anubis/devcontainer"
     volumes:
       - ../:/workspace/anubis:cached
+    environment:
+      VALKEY_URL: redis://valkey:6379/0
     #entrypoint: ["/usr/bin/sleep", "infinity"]
     user: vscode
