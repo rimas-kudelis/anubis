@@ -229,6 +229,7 @@ qwantbot
 rac
 rawler
 rcvar
+rdb
 redhat
 redir
 redirectscheme
@@ -279,6 +280,7 @@ techarohq
 templ
 templruntime
 testarea
+testdb
 Thancred
 thoth
 thothmock
@@ -286,6 +288,8 @@ Tik
 Timpibot
 traefik
 uberspace
+Unbreak
+unbreakdocker
 unifiedjs
 unixhttpd
 unmarshal
@@ -293,7 +297,7 @@ unparseable
 uuidgen
 uvx
 UXP
-Valkey
+valkey
 Varis
 Velen
 vendored
