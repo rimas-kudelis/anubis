@@ -132,7 +132,8 @@ func (s *Store) cleanup(ctx context.Context) error {
 
 			expiryStr := valueBkt.Get([]byte("expiry"))
 			if expiryStr == nil {
-				return fmt.Errorf("[unexpected] %w: %q (expiry is nil)", store.ErrNotFound, string(key))
+				slog.Warn("while running cleanup, expiry is not set somehow, file a bug?", "key", string(key))
+				return nil
 			}
 
 			expiry, err = time.Parse(time.RFC3339Nano, string(expiryStr))
