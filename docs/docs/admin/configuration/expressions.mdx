@@ -99,18 +99,18 @@ For this rule, if a request comes in matching [the signature of the `go get` com
 
 Anubis exposes the following variables to expressions:
 
-| Name            | Type                  | Explanation                                                                                                                                  | Example                                                      |
-| :-------------- | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------- |
-| `headers`       | `map[string, string]` | The [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers) of the request being processed.                           | `{"User-Agent": "Mozilla/5.0 Gecko/20100101 Firefox/137.0"}` |
-| `host`          | `string`              | The [HTTP hostname](https://web.dev/articles/url-parts#host) the request is targeted to.                                                     | `anubis.techaro.lol`                                         |
-| `load_1m`       | `double`              | The current system load average over the last one minute. This is useful for making [load-based checks](#using-the-sytem-load-average).      |
-| `load_5m`       | `double`              | The current system load average over the last five minutes. This is useful for making [load-based checks](#using-the-sytem-load-average).    |
-| `load_15m`      | `double`              | The current system load average over the last fifteen minutes. This is useful for making [load-based checks](#using-the-sytem-load-average). |
-| `method`        | `string`              | The [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods) in the request being processed.                       | `GET`, `POST`, `DELETE`, etc.                                |
-| `path`          | `string`              | The [path](https://web.dev/articles/url-parts#pathname) of the request being processed.                                                      | `/`, `/api/memes/create`                                     |
-| `query`         | `map[string, string]` | The [query parameters](https://web.dev/articles/url-parts#query) of the request being processed.                                             | `?foo=bar` -> `{"foo": "bar"}`                               |
-| `remoteAddress` | `string`              | The IP address of the client.                                                                                                                | `1.1.1.1`                                                    |
-| `userAgent`     | `string`              | The [`User-Agent`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent) string in the request being processed.    | `Mozilla/5.0 Gecko/20100101 Firefox/137.0`                   |
+| Name            | Type                  | Explanation                                                                                                                                   | Example                                                      |
+| :-------------- | :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------- |
+| `headers`       | `map[string, string]` | The [headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers) of the request being processed.                            | `{"User-Agent": "Mozilla/5.0 Gecko/20100101 Firefox/137.0"}` |
+| `host`          | `string`              | The [HTTP hostname](https://web.dev/articles/url-parts#host) the request is targeted to.                                                      | `anubis.techaro.lol`                                         |
+| `load_1m`       | `double`              | The current system load average over the last one minute. This is useful for making [load-based checks](#using-the-system-load-average).      |
+| `load_5m`       | `double`              | The current system load average over the last five minutes. This is useful for making [load-based checks](#using-the-system-load-average).    |
+| `load_15m`      | `double`              | The current system load average over the last fifteen minutes. This is useful for making [load-based checks](#using-the-system-load-average). |
+| `method`        | `string`              | The [HTTP method](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods) in the request being processed.                        | `GET`, `POST`, `DELETE`, etc.                                |
+| `path`          | `string`              | The [path](https://web.dev/articles/url-parts#pathname) of the request being processed.                                                       | `/`, `/api/memes/create`                                     |
+| `query`         | `map[string, string]` | The [query parameters](https://web.dev/articles/url-parts#query) of the request being processed.                                              | `?foo=bar` -> `{"foo": "bar"}`                               |
+| `remoteAddress` | `string`              | The IP address of the client.                                                                                                                 | `1.1.1.1`                                                    |
+| `userAgent`     | `string`              | The [`User-Agent`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/User-Agent) string in the request being processed.     | `Mozilla/5.0 Gecko/20100101 Firefox/137.0`                   |
 
 Of note: in many languages when you look up a key in a map and there is nothing there, the language will return some "falsy" value like `undefined` in JavaScript, `None` in Python, or the zero value of the type in Go. In CEL, if you try to look up a value that does not exist, execution of the expression will fail and Anubis will return an error.
 
@@ -144,7 +144,7 @@ X-Real-Ip: 8.8.8.8
 
 Anubis would return a challenge because all of those conditions are true.
 
-### Using the sytem load average
+### Using the system load average
 
 In Unix-like systems (such as Linux), every process on the system has to wait its turn to be able to run. This means that as more processes on the system are running, they need to wait longer to be able to execute. The [load average](<https://en.wikipedia.org/wiki/Load_(computing)>) represents the number of processes that want to be able to run but can't run yet. This metric isn't the most reliable to identify a cause, but is great at helping to identify symptoms.
 
