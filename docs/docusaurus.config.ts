@@ -6,7 +6,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'Anubis',
-  tagline: 'Weigh the soul of incoming HTTP requests using proof-of-work to stop AI crawlers',
+  tagline: 'Weigh the soul of incoming HTTP requests to protect your website!',
   favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
