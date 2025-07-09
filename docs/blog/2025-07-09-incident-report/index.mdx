@@ -100,3 +100,4 @@ The `ingress-nginx` logs print IP addresses of remote clients to the log feed. I
 - A single instance of downtime like this is not enough reason to move providers. Moving providers because of this is thus out of scope.
 - Techaro needs a status page hosted on a different cloud provider than is used for the production cluster (`TecharoHQ/TODO#6`).
 - Health checks for IPv4 and IPv6 traffic need to be created (`TecharoHQ/TODO#7`)
+- Remove the requirement for [Anubis to pass Thoth health checks before it can start if Thoth is enabled](https://github.com/TecharoHQ/anubis/pull/794)
