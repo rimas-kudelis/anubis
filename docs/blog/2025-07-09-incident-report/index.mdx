@@ -8,13 +8,15 @@ image: ./window-portal.jpg
 
 ![](./window-portal.jpg)
 
-Techaro services were down for IPv4 traffic on July 9th, 2025. This blogpost is a report of what happened, what actions were taken to resolve the situation, and what actions are being done in the near future to make this problem less likely to occur in the future. Enjoy this incident report!
+Techaro services were down for IPv4 traffic on July 9th, 2025. This blogpost is a report of what happened, what actions were taken to resolve the situation, and what actions are being done in the near future to prevent this problem. Enjoy this incident report!
 
 {/* truncate */}
 
 :::note
 
 In other companies, this kind of documentation would be kept internal. At Techaro, we believe that you deserve radical candor and the truth. As such, we are proving our lofty words with actions by publishing details about how things go wrong publicly.
+
+Everything past this point follows my standard incident root cause meeting template.
 
 :::
 
@@ -99,5 +101,5 @@ The `ingress-nginx` logs print IP addresses of remote clients to the log feed. I
 
 - A single instance of downtime like this is not enough reason to move providers. Moving providers because of this is thus out of scope.
 - Techaro needs a status page hosted on a different cloud provider than is used for the production cluster (`TecharoHQ/TODO#6`).
-- Health checks for IPv4 and IPv6 traffic need to be created (`TecharoHQ/TODO#7`)
-- Remove the requirement for [Anubis to pass Thoth health checks before it can start if Thoth is enabled](https://github.com/TecharoHQ/anubis/pull/794)
+- Health checks for IPv4 and IPv6 traffic need to be created (`TecharoHQ/TODO#7`).
+- Remove the requirement for [Anubis to pass Thoth health checks before it can start if Thoth is enabled](https://github.com/TecharoHQ/anubis/pull/794).
