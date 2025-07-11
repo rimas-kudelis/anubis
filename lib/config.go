@@ -24,6 +24,7 @@ import (
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/TecharoHQ/anubis/xess"
 	"github.com/a-h/templ"
+	"github.com/gorilla/mux"
 )
 
 type Options struct {
@@ -110,25 +111,33 @@ func New(opts Options) (*Server, error) {
 		store:       opts.Policy.Store,
 	}
 
-	mux := http.NewServeMux()
-	xess.Mount(mux)
+	r := mux.NewRouter()
+	xess.Mount(r)
 
 	// Helper to add global prefix
 	registerWithPrefix := func(pattern string, handler http.Handler, method string) {
-		if method != "" {
-			method = method + " " // methods must end with a space to register with them
-		}
-
 		// Ensure there's no double slash when concatenating BasePrefix and pattern
 		basePrefix := strings.TrimSuffix(anubis.BasePrefix, "/")
-		prefix := method + basePrefix
 
 		// If pattern doesn't start with a slash, add one
 		if !strings.HasPrefix(pattern, "/") {
 			pattern = "/" + pattern
 		}
 
-		mux.Handle(prefix+pattern, handler)
+		var route *mux.Route
+
+		switch strings.HasSuffix(pattern, "/") {
+		case true:
+			route = r.PathPrefix(basePrefix + pattern)
+		case false:
+			route = r.Path(basePrefix + pattern)
+		}
+
+		if method != "" {
+			route = route.Methods(method)
+		}
+
+		route.Handler(handler)
 	}
 
 	// Ensure there's no double slash when concatenating BasePrefix and StaticPath
@@ -164,10 +173,10 @@ func New(opts Options) (*Server, error) {
 
 	for _, implKind := range challenge.Methods() {
 		impl, _ := challenge.Get(implKind)
-		impl.Setup(mux)
+		impl.Setup(r)
 	}
 
-	result.mux = mux
+	result.mux = r
 
 	return result, nil
 }

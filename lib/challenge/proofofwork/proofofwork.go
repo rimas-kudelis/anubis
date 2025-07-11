@@ -13,6 +13,7 @@ import (
 	"github.com/TecharoHQ/anubis/lib/localization"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/a-h/templ"
+	"github.com/gorilla/mux"
 )
 
 func init() {
@@ -24,7 +25,7 @@ type Impl struct {
 	Algorithm string
 }
 
-func (i *Impl) Setup(mux *http.ServeMux) {
+func (i *Impl) Setup(r *mux.Router) {
 	/* no implementation required */
 }
 

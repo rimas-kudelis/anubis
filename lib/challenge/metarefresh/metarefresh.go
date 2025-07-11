@@ -11,6 +11,7 @@ import (
 	"github.com/TecharoHQ/anubis/lib/localization"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/a-h/templ"
+	"github.com/gorilla/mux"
 )
 
 //go:generate go tool github.com/a-h/templ/cmd/templ generate
@@ -21,7 +22,7 @@ func init() {
 
 type Impl struct{}
 
-func (i *Impl) Setup(mux *http.ServeMux) {}
+func (i *Impl) Setup(r *mux.Router) {}
 
 func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput) (templ.Component, error) {
 	u, err := r.URL.Parse(anubis.BasePrefix + "/.within.website/x/cmd/anubis/api/pass-challenge")

@@ -18,6 +18,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -68,7 +69,7 @@ var (
 
 type Server struct {
 	next        http.Handler
-	mux         *http.ServeMux
+	mux         *mux.Router
 	policy      *policy.ParsedConfig
 	OGTags      *ogtags.OGTagCache
 	ed25519Priv ed25519.PrivateKey

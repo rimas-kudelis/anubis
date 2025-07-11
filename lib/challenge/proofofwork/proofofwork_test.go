@@ -9,6 +9,7 @@ import (
 	"github.com/TecharoHQ/anubis/lib/challenge"
 	"github.com/TecharoHQ/anubis/lib/policy"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
+	"github.com/gorilla/mux"
 )
 
 func mkRequest(t *testing.T, values map[string]string) *http.Request {
@@ -124,7 +125,7 @@ func TestBasic(t *testing.T) {
 		t.Run(cs.name, func(t *testing.T) {
 			lg := slog.With()
 
-			i.Setup(http.NewServeMux())
+			i.Setup(mux.NewRouter())
 
 			inp := &challenge.IssueInput{
 				Rule: bot,

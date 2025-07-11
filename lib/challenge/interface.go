@@ -10,6 +10,7 @@ import (
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/TecharoHQ/anubis/lib/store"
 	"github.com/a-h/templ"
+	"github.com/gorilla/mux"
 )
 
 var (
@@ -58,7 +59,7 @@ type ValidateInput struct {
 
 type Impl interface {
 	// Setup registers any additional routes with the Impl for assets or API routes.
-	Setup(mux *http.ServeMux)
+	Setup(r *mux.Router)
 
 	// Issue a new challenge to the user, called by the Anubis.
 	Issue(r *http.Request, lg *slog.Logger, in *IssueInput) (templ.Component, error)
