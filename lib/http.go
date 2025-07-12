@@ -200,7 +200,7 @@ func (s *Server) respondWithStatus(w http.ResponseWriter, r *http.Request, msg s
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch strings.HasPrefix(r.URL.Path, anubis.StaticPath) {
+	switch strings.HasPrefix(r.URL.Path, s.internalPath) {
 	case true:
 		s.mux.ServeHTTP(w, r)
 	case false:

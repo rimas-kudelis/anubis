@@ -101,13 +101,14 @@ func New(opts Options) (*Server, error) {
 	anubis.BasePrefix = opts.BasePrefix
 
 	result := &Server{
-		next:        opts.Next,
-		ed25519Priv: opts.ED25519PrivateKey,
-		hs512Secret: opts.HS512Secret,
-		policy:      opts.Policy,
-		opts:        opts,
-		OGTags:      ogtags.NewOGTagCache(opts.Target, opts.Policy.OpenGraph, opts.Policy.Store),
-		store:       opts.Policy.Store,
+		next:         opts.Next,
+		ed25519Priv:  opts.ED25519PrivateKey,
+		hs512Secret:  opts.HS512Secret,
+		policy:       opts.Policy,
+		opts:         opts,
+		OGTags:       ogtags.NewOGTagCache(opts.Target, opts.Policy.OpenGraph, opts.Policy.Store),
+		store:        opts.Policy.Store,
+		internalPath: opts.BasePrefix + anubis.StaticPath,
 	}
 
 	mux := http.NewServeMux()
