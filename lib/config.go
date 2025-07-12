@@ -154,7 +154,6 @@ func New(opts Options) (*Server, error) {
 
 	registerWithPrefix(anubis.APIPrefix+"pass-challenge", http.HandlerFunc(result.PassChallenge), "GET")
 	registerWithPrefix(anubis.APIPrefix+"check", http.HandlerFunc(result.maybeReverseProxyHttpStatusOnly), "")
-	registerWithPrefix("/", http.HandlerFunc(result.maybeReverseProxyOrPage), "")
 
 	//goland:noinspection GoBoolExpressions
 	if anubis.Version == "devel" {
