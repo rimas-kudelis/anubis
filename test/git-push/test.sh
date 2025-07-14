@@ -31,7 +31,7 @@ sleep 2
   git config user.name "Anubis CI" && \
   git config user.email "social+anubis-ci@techaro.lol" && \
   git commit -sm "initial commit" && \
-  git push http://localhost:3000/git/foo.git
+  git push -u http://localhost:3000/git/foo.git
 )
 
 docker compose down
