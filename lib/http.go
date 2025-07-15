@@ -131,6 +131,7 @@ func (s *Server) RenderIndex(w http.ResponseWriter, r *http.Request, rule *polic
 	chall, err := s.challengeFor(r)
 	if err != nil {
 		lg.Error("can't get challenge", "err", "err")
+		s.ClearCookie(w, CookieOpts{Name: anubis.TestCookieName, Host: r.Host})
 		s.respondWithError(w, r, fmt.Sprintf("%s: %s", localizer.T("internal_server_error"), rule.Challenge.Algorithm))
 		return
 	}
@@ -155,6 +156,7 @@ func (s *Server) RenderIndex(w http.ResponseWriter, r *http.Request, rule *polic
 	impl, ok := challenge.Get(rule.Challenge.Algorithm)
 	if !ok {
 		lg.Error("check failed", "err", "can't get algorithm", "algorithm", rule.Challenge.Algorithm)
+		s.ClearCookie(w, CookieOpts{Name: anubis.TestCookieName, Host: r.Host})
 		s.respondWithError(w, r, fmt.Sprintf("%s: %s", localizer.T("internal_server_error"), rule.Challenge.Algorithm))
 		return
 	}
