@@ -11,9 +11,8 @@ trap cleanup EXIT SIGINT
 # Build static assets
 (cd ../.. && npm ci && npm run assets)
 
-# Spawn three jobs:
+go tool anubis --help 2>/dev/null ||:
 
-# HTTP daemon that listens over a unix socket (implicitly ./unixhttpd.sock)
 go run ../cmd/unixhttpd &
 
 go tool anubis \
