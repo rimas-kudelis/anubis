@@ -4,7 +4,7 @@ bind {
   metrics = ":9091"
 }
 
-domain "anubis.techaro.lol" {
+domain "osiris.local.cetacean.club" {
   tls {
     cert = "./internal/config/testdata/tls/selfsigned.crt"
     key  = "./internal/config/testdata/tls/selfsigned.key"

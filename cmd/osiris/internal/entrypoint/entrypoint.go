@@ -2,6 +2,7 @@ package entrypoint
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log/slog"
 	"net"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/TecharoHQ/anubis/cmd/osiris/internal/config"
 	"github.com/TecharoHQ/anubis/internal"
+	"github.com/TecharoHQ/anubis/internal/fingerprint"
 	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/sync/errgroup"
@@ -57,7 +59,7 @@ func Main(opts Options) error {
 			ln.Close()
 		}(gCtx)
 
-		slog.Info("listening for HTTP", "bind", cfg.Bind.HTTP)
+		slog.Info("listening", "for", "http", "bind", cfg.Bind.HTTP)
 
 		srv := http.Server{Handler: rtr, ErrorLog: internal.GetFilteredHTTPLogger()}
 
@@ -65,6 +67,35 @@ func Main(opts Options) error {
 	})
 
 	// HTTPS
+	g.Go(func() error {
+		ln, err := net.Listen("tcp", cfg.Bind.HTTPS)
+		if err != nil {
+			return fmt.Errorf("(https) can't bind to tcp %s: %w", cfg.Bind.HTTPS, err)
+		}
+		defer ln.Close()
+
+		go func(ctx context.Context) {
+			<-ctx.Done()
+			ln.Close()
+		}(gCtx)
+
+		tc := &tls.Config{
+			GetCertificate: rtr.GetCertificate,
+		}
+
+		srv := &http.Server{
+			Addr:      cfg.Bind.HTTPS,
+			Handler:   rtr,
+			ErrorLog:  internal.GetFilteredHTTPLogger(),
+			TLSConfig: tc,
+		}
+
+		fingerprint.ApplyTLSFingerprinter(srv)
+
+		slog.Info("listening", "for", "https", "bind", cfg.Bind.HTTPS)
+
+		return srv.ServeTLS(ln, "", "")
+	})
 
 	// Metrics
 	g.Go(func() error {
@@ -101,12 +132,18 @@ func Main(opts Options) error {
 			}
 		})
 
-		slog.Info("listening for Metrics", "bind", cfg.Bind.Metrics)
+		slog.Info("listening", "for", "metrics", "bind", cfg.Bind.Metrics)
 
-		srv := http.Server{Handler: mux, ErrorLog: internal.GetFilteredHTTPLogger()}
+		srv := http.Server{
+			Addr:     cfg.Bind.Metrics,
+			Handler:  mux,
+			ErrorLog: internal.GetFilteredHTTPLogger(),
+		}
 
 		return srv.Serve(ln)
 	})
+
+	internal.SetHealth("osiris", healthv1.HealthCheckResponse_SERVING)
 
 	return g.Wait()
 }
