@@ -58,8 +58,6 @@ func buildJA4(hello *tls.ClientHelloInfo) (ja4 TLSFingerprintJA4) {
 		}
 
 		switch sslVersion {
-		case tls.VersionSSL30:
-			buf = append(buf, 's', '3')
 		case tls.VersionTLS10:
 			buf = append(buf, '1', '0')
 		case tls.VersionTLS11:

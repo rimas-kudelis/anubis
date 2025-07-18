@@ -14,10 +14,13 @@ import (
 	"sync"
 
 	"github.com/TecharoHQ/anubis/cmd/osiris/internal/config"
+	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/internal/fingerprint"
+	"github.com/felixge/httpsnoop"
 	"github.com/lum8rjack/go-ja4h"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -30,6 +33,12 @@ var (
 		Namespace: "techaro",
 		Subsystem: "osiris",
 		Name:      "request_count",
+	}, []string{"domain", "method", "response_code"})
+
+	responseTime = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Namespace: "techaro",
+		Subsystem: "osiris",
+		Name:      "response_time",
 	}, []string{"domain"})
 
 	unresolvedRequests = promauto.NewGauge(prometheus.GaugeOpts{
@@ -60,18 +69,35 @@ func (rtr *Router) setConfig(c config.Toplevel) error {
 
 		var h http.Handler
 
-		switch u.Scheme {
-		case "http", "https":
-			h = httputil.NewSingleHostReverseProxy(u)
-		case "h2c":
-			h = newH2CReverseProxy(u)
-		case "unix":
-			h = &httputil.ReverseProxy{
-				Transport: &http.Transport{
-					DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-						return net.Dial("unix", strings.TrimPrefix(d.Target, "unix://"))
+		if u != nil {
+			switch u.Scheme {
+			case "http", "https":
+				rp := httputil.NewSingleHostReverseProxy(u)
+
+				if d.InsecureSkipVerify {
+					rp.Transport = &http.Transport{
+						TLSClientConfig: &tls.Config{
+							InsecureSkipVerify: true,
+						},
+					}
+				}
+
+				h = rp
+			case "h2c":
+				h = newH2CReverseProxy(u)
+			case "unix":
+				h = &httputil.ReverseProxy{
+					Director: func(r *http.Request) {
+						r.URL.Scheme = "http"
+						r.URL.Host = d.Name
+						r.Host = d.Name
 					},
-				},
+					Transport: &http.Transport{
+						DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+							return net.Dial("unix", strings.TrimPrefix(d.Target, "unix://"))
+						},
+					},
+				}
 			}
 		}
 
@@ -129,14 +155,81 @@ func NewRouter(c config.Toplevel) (*Router, error) {
 	return result, nil
 }
 
+func (rtr *Router) HandleHTTP(ctx context.Context, ln net.Listener) error {
+	srv := http.Server{
+		Handler:  rtr,
+		ErrorLog: internal.GetFilteredHTTPLogger(),
+	}
+
+	go func(ctx context.Context) {
+		<-ctx.Done()
+		srv.Close()
+	}(ctx)
+
+	return srv.Serve(ln)
+}
+
+func (rtr *Router) HandleHTTPS(ctx context.Context, ln net.Listener) error {
+	tc := &tls.Config{
+		GetCertificate: rtr.GetCertificate,
+	}
+
+	srv := &http.Server{
+		Handler:   rtr,
+		ErrorLog:  internal.GetFilteredHTTPLogger(),
+		TLSConfig: tc,
+	}
+
+	go func(ctx context.Context) {
+		<-ctx.Done()
+		srv.Close()
+	}(ctx)
+
+	fingerprint.ApplyTLSFingerprinter(srv)
+
+	return srv.ServeTLS(ln, "", "")
+}
+
+func (rtr *Router) ListenAndServeMetrics(ctx context.Context, addr string) error {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("(metrics) can't bind to tcp %s: %w", addr, err)
+	}
+	defer ln.Close()
+
+	go func(ctx context.Context) {
+		<-ctx.Done()
+		ln.Close()
+	}(ctx)
+
+	mux := http.NewServeMux()
+
+	mux.Handle("/metrics", promhttp.Handler())
+	mux.HandleFunc("/readyz", readyz)
+	mux.HandleFunc("/healthz", healthz)
+
+	slog.Info("listening", "for", "metrics", "bind", addr)
+
+	srv := http.Server{
+		Addr:     addr,
+		Handler:  mux,
+		ErrorLog: internal.GetFilteredHTTPLogger(),
+	}
+
+	go func(ctx context.Context) {
+		<-ctx.Done()
+		srv.Close()
+	}(ctx)
+
+	return srv.Serve(ln)
+}
+
 func (rtr *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var host = r.Host
 
 	if strings.Contains(host, ":") {
 		host, _, _ = net.SplitHostPort(host)
 	}
-
-	requestsPerDomain.WithLabelValues(host).Inc()
 
 	var h http.Handler
 	var ok bool
@@ -170,5 +263,10 @@ func (rtr *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("X-Tcp-Ja4t-Fingerprint", tcpFP.String())
 	}
 
-	h.ServeHTTP(w, r)
+	m := httpsnoop.CaptureMetrics(h, w, r)
+
+	requestsPerDomain.WithLabelValues(host, r.Method, fmt.Sprint(m.Code)).Inc()
+	responseTime.WithLabelValues(host).Observe(float64(m.Duration.Milliseconds()))
+
+	slog.Info("request completed", "host", host, "method", r.Method, "response_code", m.Code, "duration_ms", m.Duration.Milliseconds())
 }

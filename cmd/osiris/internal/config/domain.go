@@ -16,10 +16,11 @@ var (
 )
 
 type Domain struct {
-	Name         string `hcl:"name,label"`
-	TLS          TLS    `hcl:"tls,block"`
-	Target       string `hcl:"target"`
-	HealthTarget string `hcl:"health_target"`
+	Name               string `hcl:"name,label"`
+	TLS                TLS    `hcl:"tls,block"`
+	Target             string `hcl:"target"`
+	InsecureSkipVerify bool   `hcl:"insecure_skip_verify,optional"`
+	HealthTarget       string `hcl:"health_target"`
 }
 
 func (d Domain) Valid() error {

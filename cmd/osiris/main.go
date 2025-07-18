@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/TecharoHQ/anubis"
 	"github.com/TecharoHQ/anubis/cmd/osiris/internal/entrypoint"
@@ -28,7 +31,10 @@ func main() {
 
 	internal.InitSlog(*slogLevel)
 
-	if err := entrypoint.Main(entrypoint.Options{
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	if err := entrypoint.Main(ctx, entrypoint.Options{
 		ConfigFname: *configFname,
 	}); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
