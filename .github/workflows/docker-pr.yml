@@ -30,11 +30,11 @@ jobs:
         with:
           source: .
           push: true
+          sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
           set: |
-            osiris.tags=ttl.sh/techaro/pr-${{ github.event.number }}/osiris
-            osiris.tags+=ttl.sh/techaro/pr-${{ github.event.number }}/osiris:24h
+            osiris.tags=ttl.sh/techaro/pr-${{ github.event.number }}/osiris:24h
 
   containerbuild:
     runs-on: ubuntu-24.04

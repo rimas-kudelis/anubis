@@ -22,7 +22,7 @@ target "osiris" {
   ]
   pull = true
   tags = [
-    "ghcr.io/techarohq/osiris:${GITHUB_SHA}",
-    "ghcr.io/techarohq/osiris:main"
+    "ghcr.io/techarohq/anubis/osiris:${GITHUB_SHA}",
+    "ghcr.io/techarohq/anubis/osiris:main"
   ]
 }
