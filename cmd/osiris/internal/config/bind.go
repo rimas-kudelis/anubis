@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrCantBindToPort = errors.New("bind: can't bind to host:port")
+	ErrInvalidHostpost = errors.New("bind: invalid host:port")
 )
 
 type Bind struct {
@@ -19,25 +19,16 @@ type Bind struct {
 func (b *Bind) Valid() error {
 	var errs []error
 
-	ln, err := net.Listen("tcp", b.HTTP)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%w %q: %w", ErrCantBindToPort, b.HTTP, err))
-	} else {
-		defer ln.Close()
+	if _, _, err := net.SplitHostPort(b.HTTP); err != nil {
+		errs = append(errs, fmt.Errorf("%w %q: %w", ErrInvalidHostpost, b.HTTP, err))
 	}
 
-	ln, err = net.Listen("tcp", b.HTTPS)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%w %q: %w", ErrCantBindToPort, b.HTTPS, err))
-	} else {
-		defer ln.Close()
+	if _, _, err := net.SplitHostPort(b.HTTPS); err != nil {
+		errs = append(errs, fmt.Errorf("%w %q: %w", ErrInvalidHostpost, b.HTTPS, err))
 	}
 
-	ln, err = net.Listen("tcp", b.Metrics)
-	if err != nil {
-		errs = append(errs, fmt.Errorf("%w %q: %w", ErrCantBindToPort, b.Metrics, err))
-	} else {
-		defer ln.Close()
+	if _, _, err := net.SplitHostPort(b.Metrics); err != nil {
+		errs = append(errs, fmt.Errorf("%w %q: %w", ErrInvalidHostpost, b.Metrics, err))
 	}
 
 	if len(errs) != 0 {

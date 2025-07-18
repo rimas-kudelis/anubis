@@ -33,6 +33,8 @@ func Main(ctx context.Context, opts Options) error {
 	if err != nil {
 		return err
 	}
+	rtr.opts = opts
+	go rtr.backgroundReloadConfig(ctx)
 
 	g, gCtx := errgroup.WithContext(ctx)
 

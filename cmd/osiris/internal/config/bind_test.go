@@ -24,7 +24,7 @@ func TestBindValid(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "reused ports",
+			name: "invalid ports",
 			precondition: func(t *testing.T) {
 				ln, err := net.Listen("tcp", ":8081")
 				if err != nil {
@@ -33,11 +33,11 @@ func TestBindValid(t *testing.T) {
 				t.Cleanup(func() { ln.Close() })
 			},
 			bind: Bind{
-				HTTP:    ":8081",
-				HTTPS:   ":8081",
-				Metrics: ":8081",
+				HTTP:    "",
+				HTTPS:   "",
+				Metrics: "",
 			},
-			err: ErrCantBindToPort,
+			err: ErrInvalidHostpost,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

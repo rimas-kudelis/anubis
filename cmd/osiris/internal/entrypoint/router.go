@@ -10,13 +10,18 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
+	"time"
 
 	"github.com/TecharoHQ/anubis/cmd/osiris/internal/config"
 	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/internal/fingerprint"
 	"github.com/felixge/httpsnoop"
+	"github.com/hashicorp/hcl/v2/hclsimple"
 	"github.com/lum8rjack/go-ja4h"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -52,6 +57,7 @@ type Router struct {
 	lock     sync.RWMutex
 	routes   map[string]http.Handler
 	tlsCerts map[string]*tls.Certificate
+	opts     Options
 }
 
 func (rtr *Router) setConfig(c config.Toplevel) error {
@@ -141,6 +147,48 @@ func (rtr *Router) GetCertificate(hello *tls.ClientHelloInfo) (*tls.Certificate,
 	}
 
 	return cert, nil
+}
+
+func (rtr *Router) loadConfig() error {
+	slog.Info("reloading config", "fname", rtr.opts.ConfigFname)
+	var cfg config.Toplevel
+	if err := hclsimple.DecodeFile(rtr.opts.ConfigFname, nil, &cfg); err != nil {
+		return err
+	}
+
+	if err := cfg.Valid(); err != nil {
+		return err
+	}
+
+	if err := rtr.setConfig(cfg); err != nil {
+		return err
+	}
+
+	slog.Info("done!")
+
+	return nil
+}
+
+func (rtr *Router) backgroundReloadConfig(ctx context.Context) {
+	t := time.NewTicker(time.Hour)
+	defer t.Stop()
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGHUP)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if err := rtr.loadConfig(); err != nil {
+				slog.Error("can't reload config", "fname", rtr.opts.ConfigFname, "err", err)
+			}
+		case <-ch:
+			if err := rtr.loadConfig(); err != nil {
+				slog.Error("can't reload config", "fname", rtr.opts.ConfigFname, "err", err)
+			}
+		}
+	}
 }
 
 func NewRouter(c config.Toplevel) (*Router, error) {
