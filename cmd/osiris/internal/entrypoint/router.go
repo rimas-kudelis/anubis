@@ -14,11 +14,25 @@ import (
 
 	"github.com/TecharoHQ/anubis/cmd/osiris/internal/config"
 	"github.com/lum8rjack/go-ja4h"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
 	ErrTargetInvalid = errors.New("[unexpected] target invalid")
 	ErrNoHandler     = errors.New("[unexpected] no handler for domain")
+
+	requestsPerDomain = promauto.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "techaro",
+		Subsystem: "osiris",
+		Name:      "request_count",
+	}, []string{"domain"})
+
+	unresolvedRequests = promauto.NewGauge(prometheus.GaugeOpts{
+		Namespace: "techaro",
+		Subsystem: "osiris",
+		Name:      "unresolved_requests",
+	})
 )
 
 type Router struct {
@@ -86,12 +100,12 @@ func NewRouter(c config.Toplevel) (*Router, error) {
 		return nil, err
 	}
 
-	fmt.Printf("%#v\n", result.routes)
-
 	return result, nil
 }
 
 func (rtr *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	requestsPerDomain.WithLabelValues(r.Host).Inc()
+
 	var h http.Handler
 	var ok bool
 
@@ -104,11 +118,12 @@ func (rtr *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rtr.lock.RUnlock()
 
 	if !ok {
+		unresolvedRequests.Inc()
 		http.NotFound(w, r) // TODO(Xe): brand this
 		return
 	}
 
-	r.Header.Set("X-HTTP-JA4H-Fingerprint", ja4hFP)
+	r.Header.Set("X-Http-Ja4h-Fingerprint", ja4hFP)
 
 	h.ServeHTTP(w, r)
 }
