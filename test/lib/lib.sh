@@ -14,7 +14,7 @@ trap cleanup EXIT SIGINT
 function build_anubis_ko() {
   (
     cd ../.. &&
-      KO_DOCKER_REPO=ko.local/anubis VERSION=devel ko build \
+      VERSION=devel ko build \
         --platform=all \
         --base-import-paths \
         --tags="latest" \
@@ -22,7 +22,7 @@ function build_anubis_ko() {
         --image-annotation="" \
         --image-label="" \
         ./cmd/anubis \
-        -L
+        --local
   )
 }
 

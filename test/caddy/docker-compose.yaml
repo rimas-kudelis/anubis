@@ -7,7 +7,7 @@ services:
       - 8443:443
 
   anubis:
-    image: ko.local/anubis
+    image: ghcr.io/techarohq/anubis
     environment:
       BIND: ":3000"
       TARGET: http://httpdebug:3000
