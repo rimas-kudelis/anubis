@@ -743,6 +743,7 @@ func TestStripBasePrefixFromRequest(t *testing.T) {
 func TestChallengeFor_ErrNotFound(t *testing.T) {
 	pol := loadPolicies(t, "testdata/aggressive_403.yaml", 0)
 	ckieExpiration := 10 * time.Minute
+	const wrongCookie = "wrong cookie"
 
 	srv := spawnAnubis(t, Options{
 		Next:   http.NewServeMux(),
@@ -755,7 +756,7 @@ func TestChallengeFor_ErrNotFound(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://example.com/", nil)
 	req.Header.Set("X-Real-IP", "127.0.0.1")
 	req.Header.Set("User-Agent", "CHALLENGE")
-	req.AddCookie(&http.Cookie{Name: anubis.TestCookieName, Value: "foogoblin"})
+	req.AddCookie(&http.Cookie{Name: anubis.TestCookieName, Value: wrongCookie})
 
 	w := httptest.NewRecorder()
 	srv.maybeReverseProxyOrPage(w, req)
@@ -789,7 +790,7 @@ func TestChallengeFor_ErrNotFound(t *testing.T) {
 		found := false
 		for _, cookie := range resp.Cookies() {
 			if cookie.Name == anubis.TestCookieName {
-				if cookie.Value == "foogoblin" {
+				if cookie.Value == wrongCookie {
 					t.Error("a new challenge cookie should be issued")
 				}
 				found = true
