@@ -14,7 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- This changes the project to: -->
 
 - Expired records are now properly removed from bbolt databases ([#848](https://github.com/TecharoHQ/anubis/pull/848)).
-
 - Fix hanging on service restart ([#853](https://github.com/TecharoHQ/anubis/issues/853))
 
 ### Added
@@ -37,6 +36,10 @@ This has been fixed in the following ways:
 2. The progress bar is updated by worker `0` instead of all workers.
 
 Hopefully this should limit the event loop thrashing and let ia32 browsers (as well as any environment with a smaller stack size than amd64 and aarch64 seem to have) function normally when processing Anubis proof of work challenges.
+
+#### Fix potential memory leak when discovering a solution
+
+In some cases, the parallel solution finder in Anubis could cause all of the worker promises to leak due to the fact the promises were being improperly terminated. This was fixed by having Anubis debounce worker termination instead of allowing it to potentially recurse infinitely.
 
 ## v1.21.0: Minfilia Warde
 
