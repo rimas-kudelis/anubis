@@ -12,9 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 <!-- This changes the project to: -->
+
 - Expired records are now properly removed from bbolt databases ([#848](https://github.com/TecharoHQ/anubis/pull/848)).
 
 - Fix hanging on service restart ([#853](https://github.com/TecharoHQ/anubis/issues/853))
+
+### Added
+
+Anubis now supports these new languages:
+
+- [Czech](https://github.com/TecharoHQ/anubis/pull/849)
+
+Anubis now supports the [`missingHeader`](./admin/configuration/expressions.mdx#missingHeader) to assert the absence of headers in requests.
 
 ## v1.21.0: Minfilia Warde
 
