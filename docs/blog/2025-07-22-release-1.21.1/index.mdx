@@ -48,9 +48,18 @@ We try to introduce breaking changes as much as possible, but these are the chan
 - The [challenge format](#challenge-format-change) has been changed in order to account for [the new challenge issuance flow](#challenge-flow-v2).
 - The [systemd service `RuntimeDirectory` has been changed](#breaking-change-systemd-runtimedirectory-change).
 
-### Sponsoring the product
+### Sponsoring the project
 
 If you rely on Anubis to keep your website safe, please consider sponsoring the project on [GitHub Sponsors](https://github.com/sponsors/Xe) or [Patreon](https://patreon.com/cadey). Funding helps pay hosting bills and offset the time spent on making this project the best it can be. Every little bit helps and when enough money is raised, [I can make Anubis my full-time job](https://github.com/TecharoHQ/anubis/discussions/278).
+
+Once this pie chart is at 100%, I can start to reduce my hours at my day job as most of my needs will be met (pre-tax):
+
+```mermaid
+pie title Funding update
+    "GitHub Sponsors" : 29
+    "Patreon" : 14
+    "Remaining" : 56
+```
 
 I am waiting to hear back from NLNet on if Anubis was selected for funding or not. Let's hope it is!
 
@@ -70,9 +79,10 @@ Anubis now supports localized responses. Locales can be added in [lib/localizati
 - [Finnish](https://github.com/TecharoHQ/anubis/pull/863)
 - [French](https://github.com/TecharoHQ/anubis/pull/716)
 - [German](https://github.com/TecharoHQ/anubis/pull/741)
+- [Japanese](https://github.com/TecharoHQ/anubis/pull/772)
 - [Icelandic](https://github.com/TecharoHQ/anubis/pull/780)
 - [Italian](https://github.com/TecharoHQ/anubis/pull/778)
-- [Japanese](https://github.com/TecharoHQ/anubis/pull/772)
+- [Norweigan](https://github.com/TecharoHQ/anubis/pull/855)
 - [Russian](https://github.com/TecharoHQ/anubis/pull/882)
 - [Spanish](https://github.com/TecharoHQ/anubis/pull/716)
 - [Turkish](https://github.com/TecharoHQ/anubis/pull/751)
@@ -208,8 +218,6 @@ This does not work if you are using Kubernetes.
 When combined with [weight thresholds](/docs/admin/configuration/thresholds), this allows you to make incoming sessions "back off" while the server is under high load.
 
 ## Challenge flow v2
-
-https://github.com/TecharoHQ/anubis/pull/749
 
 The main goal of Anubis is to weigh the risks of incoming requests in order to protect upstream resources against abusive clients like badly written scrapers. In order to separate "good" clients (like users wanting to learn from a website's content) from "bad" clients, Anubis issues [challenges](/docs/category/challenges).
 
