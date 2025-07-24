@@ -18,6 +18,8 @@ jobs:
           - git-push
           - healthcheck
           - i18n
+          - palemoon/amd64
+          - palemoon/i386
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
