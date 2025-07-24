@@ -1,9 +1,7 @@
-export VERSION=$GITHUB_COMMIT-test
-export KO_DOCKER_REPO=ko.local
+#!/usr/bin/env bash
 
-set -u
+set -euo pipefail
+set -x
 
-(
-  cd ../.. &&
-    ko build --platform=all --base-import-paths --tags="latest" --image-user=1000 --image-annotation="" --image-label="" ./cmd/anubis -L
-)
+(cd amd64 && ./test.sh && docker compose down -t0 && docker compose rm)
+(cd i386 && ./test.sh && docker compose down -t0 && docker compose rm)

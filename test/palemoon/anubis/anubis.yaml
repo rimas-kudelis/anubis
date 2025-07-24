@@ -3,8 +3,8 @@ bots:
     user_agent_regex: PaleMoon
     action: CHALLENGE
     challenge:
-      difficulty: 4
-      report_as: 4
+      difficulty: 2
+      report_as: 2
       algorithm: fast
 
 status_codes:
