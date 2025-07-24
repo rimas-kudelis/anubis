@@ -14,6 +14,9 @@ trap cleanup EXIT SIGINT
 
 function build_anubis_ko() {
   (
+    cd $REPO_ROOT && npm ci && npm run assets
+  )
+  (
     cd $REPO_ROOT &&
       VERSION=devel ko build \
         --platform=all \
@@ -40,7 +43,9 @@ function mint_cert() {
     (
       cd ${REPO_ROOT}/test/pki &&
         mkdir -p "${domainName}" &&
-        go tool minica -domains "${domainName}"
+        go tool minica -domains "${domainName}" &&
+        cd "${domainName}" &&
+        chmod 666 *
     )
   fi
 }

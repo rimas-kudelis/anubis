@@ -28,7 +28,7 @@ func main() {
 	flagenv.Parse()
 	flag.Parse()
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
 	lanip, err := internal.GetLANIP()

@@ -2,8 +2,8 @@ services:
   display:
     image: ghcr.io/techarohq/ci-images/xserver:latest
     pull_policy: always
-    # ports:
-    #   - 5900:5900
+    ports:
+      - 5900:5900
 
   anubis:
     image: ko.local/anubis

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+export VERSION=$GITHUB_COMMIT-test
+export KO_DOCKER_REPO=ko.local
+
 set -euo pipefail
 
 source ../../lib/lib.sh
