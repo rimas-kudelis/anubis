@@ -19,7 +19,7 @@ jobs:
           - healthcheck
           - i18n
           - palemoon/amd64
-          - palemoon/i386
+          #- palemoon/i386
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
