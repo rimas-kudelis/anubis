@@ -6,7 +6,6 @@ import (
 
 	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/lib/checker/expression/environment"
-	"github.com/TecharoHQ/anubis/lib/policy/expressions"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 )
@@ -72,15 +71,15 @@ func (cr *CELRequest) ResolveName(name string) (any, bool) {
 	case "path":
 		return cr.URL.Path, true
 	case "query":
-		return expressions.URLValues{Values: cr.URL.Query()}, true
+		return URLValues{Values: cr.URL.Query()}, true
 	case "headers":
-		return expressions.HTTPHeaders{Header: cr.Header}, true
+		return HTTPHeaders{Header: cr.Header}, true
 	case "load_1m":
-		return expressions.Load1(), true
+		return Load1(), true
 	case "load_5m":
-		return expressions.Load5(), true
+		return Load5(), true
 	case "load_15m":
-		return expressions.Load15(), true
+		return Load15(), true
 	default:
 		return nil, false
 	}
