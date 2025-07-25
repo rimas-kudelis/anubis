@@ -1,4 +1,4 @@
-package expressions
+package environment
 
 import (
 	"testing"
@@ -6,8 +6,8 @@ import (
 	"github.com/google/cel-go/common/types"
 )
 
-func TestBotEnvironment(t *testing.T) {
-	env, err := BotEnvironment()
+func TestBot(t *testing.T) {
+	env, err := Bot()
 	if err != nil {
 		t.Fatalf("failed to create bot environment: %v", err)
 	}
@@ -108,8 +108,8 @@ func TestBotEnvironment(t *testing.T) {
 	})
 }
 
-func TestThresholdEnvironment(t *testing.T) {
-	env, err := ThresholdEnvironment()
+func TestThreshold(t *testing.T) {
+	env, err := Threshold()
 	if err != nil {
 		t.Fatalf("failed to create threshold environment: %v", err)
 	}

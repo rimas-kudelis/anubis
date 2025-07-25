@@ -1,4 +1,4 @@
-package expressions
+package environment
 
 import (
 	"math/rand/v2"
@@ -10,11 +10,11 @@ import (
 	"github.com/google/cel-go/ext"
 )
 
-// BotEnvironment creates a new CEL environment, this is the set of
-// variables and functions that are passed into the CEL scope so that
-// Anubis can fail loudly and early when something is invalid instead
-// of blowing up at runtime.
-func BotEnvironment() (*cel.Env, error) {
+// Bot creates a new CEL environment, this is the set of variables and
+// functions that are passed into the CEL scope so that Anubis can fail
+// loudly and early when something is invalid instead of blowing up at
+// runtime.
+func Bot() (*cel.Env, error) {
 	return New(
 		// Variables exposed to CEL programs:
 		cel.Variable("remoteAddress", cel.StringType),
@@ -57,13 +57,14 @@ func BotEnvironment() (*cel.Env, error) {
 	)
 }
 
-// NewThreshold creates a new CEL environment for threshold checking.
-func ThresholdEnvironment() (*cel.Env, error) {
+// Threshold creates a new CEL environment for threshold checking.
+func Threshold() (*cel.Env, error) {
 	return New(
 		cel.Variable("weight", cel.IntType),
 	)
 }
 
+// New creates a new base CEL environment.
 func New(opts ...cel.EnvOption) (*cel.Env, error) {
 	args := []cel.EnvOption{
 		ext.Strings(
@@ -95,7 +96,7 @@ func New(opts ...cel.EnvOption) (*cel.Env, error) {
 	return cel.NewEnv(args...)
 }
 
-// Compile takes CEL environment and syntax tree then emits an optimized
+// Compile takes a CEL environment and syntax tree then emits an optimized
 // Program for execution.
 func Compile(env *cel.Env, src string) (cel.Program, error) {
 	intermediate, iss := env.Compile(src)

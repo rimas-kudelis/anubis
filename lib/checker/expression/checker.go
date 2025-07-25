@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/TecharoHQ/anubis/internal"
+	"github.com/TecharoHQ/anubis/lib/checker/expression/environment"
 	"github.com/TecharoHQ/anubis/lib/policy/expressions"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
@@ -17,12 +18,12 @@ type Checker struct {
 }
 
 func New(cfg *Config) (*Checker, error) {
-	env, err := expressions.BotEnvironment()
+	env, err := environment.Bot()
 	if err != nil {
 		return nil, err
 	}
 
-	program, err := expressions.Compile(env, cfg.String())
+	program, err := environment.Compile(env, cfg.String())
 	if err != nil {
 		return nil, fmt.Errorf("can't compile CEL program: %w", err)
 	}
