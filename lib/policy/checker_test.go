@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+
+	"github.com/TecharoHQ/anubis"
 )
 
 func TestRemoteAddrChecker(t *testing.T) {
@@ -46,14 +48,14 @@ func TestRemoteAddrChecker(t *testing.T) {
 			name:  "no_ip_set",
 			cidrs: []string{"::/0"},
 			ok:    false,
-			err:   ErrMisconfiguration,
+			err:   anubis.ErrMisconfiguration,
 		},
 		{
 			name:  "invalid_ip",
 			cidrs: []string{"::/0"},
 			ip:    "According to all natural laws of aviation",
 			ok:    false,
-			err:   ErrMisconfiguration,
+			err:   anubis.ErrMisconfiguration,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -124,7 +126,7 @@ func TestHeaderMatchesChecker(t *testing.T) {
 		{
 			name:   "invalid_regex",
 			rexStr: "a(b",
-			err:    ErrMisconfiguration,
+			err:    anubis.ErrMisconfiguration,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

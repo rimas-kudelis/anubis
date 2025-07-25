@@ -2,6 +2,7 @@
 package checker
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,12 +10,17 @@ import (
 	"github.com/TecharoHQ/anubis/internal"
 )
 
-type Impl interface {
+var (
+	ErrUnparseableConfig = errors.New("checker: config is unparseable")
+	ErrInvalidConfig     = errors.New("checker: config is invalid")
+)
+
+type Interface interface {
 	Check(*http.Request) (matches bool, err error)
 	Hash() string
 }
 
-type List []Impl
+type List []Interface
 
 func (l List) Check(r *http.Request) (bool, error) {
 	for _, c := range l {

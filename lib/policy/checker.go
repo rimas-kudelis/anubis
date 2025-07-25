@@ -10,7 +10,7 @@ import (
 
 	"github.com/TecharoHQ/anubis"
 	"github.com/TecharoHQ/anubis/internal"
-	"github.com/TecharoHQ/anubis/lib/policy/checker"
+	"github.com/TecharoHQ/anubis/lib/checker"
 	"github.com/gaissmai/bart"
 )
 
@@ -19,7 +19,7 @@ type RemoteAddrChecker struct {
 	hash        string
 }
 
-func NewRemoteAddrChecker(cidrs []string) (checker.Impl, error) {
+func NewRemoteAddrChecker(cidrs []string) (checker.Interface, error) {
 	table := new(bart.Lite)
 
 	for _, cidr := range cidrs {
@@ -61,11 +61,11 @@ type HeaderMatchesChecker struct {
 	hash   string
 }
 
-func NewUserAgentChecker(rexStr string) (checker.Impl, error) {
+func NewUserAgentChecker(rexStr string) (checker.Interface, error) {
 	return NewHeaderMatchesChecker("User-Agent", rexStr)
 }
 
-func NewHeaderMatchesChecker(header, rexStr string) (checker.Impl, error) {
+func NewHeaderMatchesChecker(header, rexStr string) (checker.Interface, error) {
 	rex, err := regexp.Compile(strings.TrimSpace(rexStr))
 	if err != nil {
 		return nil, fmt.Errorf("%w: regex %s failed parse: %w", anubis.ErrMisconfiguration, rexStr, err)
@@ -90,7 +90,7 @@ type PathChecker struct {
 	hash   string
 }
 
-func NewPathChecker(rexStr string) (checker.Impl, error) {
+func NewPathChecker(rexStr string) (checker.Interface, error) {
 	rex, err := regexp.Compile(strings.TrimSpace(rexStr))
 	if err != nil {
 		return nil, fmt.Errorf("%w: regex %s failed parse: %w", anubis.ErrMisconfiguration, rexStr, err)
@@ -110,7 +110,7 @@ func (pc *PathChecker) Hash() string {
 	return pc.hash
 }
 
-func NewHeaderExistsChecker(key string) checker.Impl {
+func NewHeaderExistsChecker(key string) checker.Interface {
 	return headerExistsChecker{strings.TrimSpace(key)}
 }
 
@@ -130,7 +130,7 @@ func (hec headerExistsChecker) Hash() string {
 	return internal.FastHash(hec.header)
 }
 
-func NewHeadersChecker(headermap map[string]string) (checker.Impl, error) {
+func NewHeadersChecker(headermap map[string]string) (checker.Interface, error) {
 	var result checker.List
 	var errs []error
 
