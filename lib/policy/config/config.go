@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/TecharoHQ/anubis/data"
+	"github.com/TecharoHQ/anubis/lib/checker/expression"
 	"github.com/TecharoHQ/anubis/lib/checker/headermatches"
 	"github.com/TecharoHQ/anubis/lib/checker/path"
 	"github.com/TecharoHQ/anubis/lib/checker/remoteaddress"
@@ -58,15 +59,15 @@ func (r Rule) Valid() error {
 const DefaultAlgorithm = "fast"
 
 type BotConfig struct {
-	UserAgentRegex *string           `json:"user_agent_regex,omitempty" yaml:"user_agent_regex,omitempty"`
-	PathRegex      *string           `json:"path_regex,omitempty" yaml:"path_regex,omitempty"`
-	HeadersRegex   map[string]string `json:"headers_regex,omitempty" yaml:"headers_regex,omitempty"`
-	Expression     *ExpressionOrList `json:"expression,omitempty" yaml:"expression,omitempty"`
-	Challenge      *ChallengeRules   `json:"challenge,omitempty" yaml:"challenge,omitempty"`
-	Weight         *Weight           `json:"weight,omitempty" yaml:"weight,omitempty"`
-	Name           string            `json:"name" yaml:"name"`
-	Action         Rule              `json:"action" yaml:"action"`
-	RemoteAddr     []string          `json:"remote_addresses,omitempty" yaml:"remote_addresses,omitempty"`
+	UserAgentRegex *string            `json:"user_agent_regex,omitempty" yaml:"user_agent_regex,omitempty"`
+	PathRegex      *string            `json:"path_regex,omitempty" yaml:"path_regex,omitempty"`
+	HeadersRegex   map[string]string  `json:"headers_regex,omitempty" yaml:"headers_regex,omitempty"`
+	Expression     *expression.Config `json:"expression,omitempty" yaml:"expression,omitempty"`
+	Challenge      *ChallengeRules    `json:"challenge,omitempty" yaml:"challenge,omitempty"`
+	Weight         *Weight            `json:"weight,omitempty" yaml:"weight,omitempty"`
+	Name           string             `json:"name" yaml:"name"`
+	Action         Rule               `json:"action" yaml:"action"`
+	RemoteAddr     []string           `json:"remote_addresses,omitempty" yaml:"remote_addresses,omitempty"`
 
 	// Thoth features
 	GeoIP *GeoIP `json:"geoip,omitempty"`

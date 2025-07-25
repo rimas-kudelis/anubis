@@ -1,4 +1,4 @@
-package config
+package expression
 
 import (
 	"bytes"
@@ -12,13 +12,13 @@ import (
 func TestExpressionOrListMarshalJSON(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		input  *ExpressionOrList
+		input  *Config
 		output []byte
 		err    error
 	}{
 		{
 			name: "single expression",
-			input: &ExpressionOrList{
+			input: &Config{
 				Expression: "true",
 			},
 			output: []byte(`"true"`),
@@ -26,7 +26,7 @@ func TestExpressionOrListMarshalJSON(t *testing.T) {
 		},
 		{
 			name: "all",
-			input: &ExpressionOrList{
+			input: &Config{
 				All: []string{"true", "true"},
 			},
 			output: []byte(`{"all":["true","true"]}`),
@@ -34,7 +34,7 @@ func TestExpressionOrListMarshalJSON(t *testing.T) {
 		},
 		{
 			name: "all one",
-			input: &ExpressionOrList{
+			input: &Config{
 				All: []string{"true"},
 			},
 			output: []byte(`"true"`),
@@ -42,7 +42,7 @@ func TestExpressionOrListMarshalJSON(t *testing.T) {
 		},
 		{
 			name: "any",
-			input: &ExpressionOrList{
+			input: &Config{
 				Any: []string{"true", "false"},
 			},
 			output: []byte(`{"any":["true","false"]}`),
@@ -50,7 +50,7 @@ func TestExpressionOrListMarshalJSON(t *testing.T) {
 		},
 		{
 			name: "any one",
-			input: &ExpressionOrList{
+			input: &Config{
 				Any: []string{"true"},
 			},
 			output: []byte(`"true"`),
@@ -75,13 +75,13 @@ func TestExpressionOrListMarshalJSON(t *testing.T) {
 func TestExpressionOrListMarshalYAML(t *testing.T) {
 	for _, tt := range []struct {
 		name   string
-		input  *ExpressionOrList
+		input  *Config
 		output []byte
 		err    error
 	}{
 		{
 			name: "single expression",
-			input: &ExpressionOrList{
+			input: &Config{
 				Expression: "true",
 			},
 			output: []byte(`"true"`),
@@ -89,7 +89,7 @@ func TestExpressionOrListMarshalYAML(t *testing.T) {
 		},
 		{
 			name: "all",
-			input: &ExpressionOrList{
+			input: &Config{
 				All: []string{"true", "true"},
 			},
 			output: []byte(`all:
@@ -99,7 +99,7 @@ func TestExpressionOrListMarshalYAML(t *testing.T) {
 		},
 		{
 			name: "all one",
-			input: &ExpressionOrList{
+			input: &Config{
 				All: []string{"true"},
 			},
 			output: []byte(`"true"`),
@@ -107,7 +107,7 @@ func TestExpressionOrListMarshalYAML(t *testing.T) {
 		},
 		{
 			name: "any",
-			input: &ExpressionOrList{
+			input: &Config{
 				Any: []string{"true", "false"},
 			},
 			output: []byte(`any:
@@ -117,7 +117,7 @@ func TestExpressionOrListMarshalYAML(t *testing.T) {
 		},
 		{
 			name: "any one",
-			input: &ExpressionOrList{
+			input: &Config{
 				Any: []string{"true"},
 			},
 			output: []byte(`"true"`),
@@ -145,14 +145,14 @@ func TestExpressionOrListUnmarshalJSON(t *testing.T) {
 	for _, tt := range []struct {
 		err      error
 		validErr error
-		result   *ExpressionOrList
+		result   *Config
 		name     string
 		inp      string
 	}{
 		{
 			name: "simple",
 			inp:  `"\"User-Agent\" in headers"`,
-			result: &ExpressionOrList{
+			result: &Config{
 				Expression: `"User-Agent" in headers`,
 			},
 		},
@@ -161,7 +161,7 @@ func TestExpressionOrListUnmarshalJSON(t *testing.T) {
 			inp: `{
 			"all": ["\"User-Agent\" in headers"]
 			}`,
-			result: &ExpressionOrList{
+			result: &Config{
 				All: []string{
 					`"User-Agent" in headers`,
 				},
@@ -172,7 +172,7 @@ func TestExpressionOrListUnmarshalJSON(t *testing.T) {
 			inp: `{
 			"any": ["\"User-Agent\" in headers"]
 			}`,
-			result: &ExpressionOrList{
+			result: &Config{
 				Any: []string{
 					`"User-Agent" in headers`,
 				},
@@ -195,7 +195,7 @@ func TestExpressionOrListUnmarshalJSON(t *testing.T) {
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			var eol ExpressionOrList
+			var eol Config
 
 			if err := json.Unmarshal([]byte(tt.inp), &eol); !errors.Is(err, tt.err) {
 				t.Errorf("wanted unmarshal error: %v but got: %v", tt.err, err)
@@ -217,40 +217,40 @@ func TestExpressionOrListUnmarshalJSON(t *testing.T) {
 func TestExpressionOrListString(t *testing.T) {
 	for _, tt := range []struct {
 		name string
-		in   ExpressionOrList
+		in   Config
 		out  string
 	}{
 		{
 			name: "single expression",
-			in: ExpressionOrList{
+			in: Config{
 				Expression: "true",
 			},
 			out: "true",
 		},
 		{
 			name: "all",
-			in: ExpressionOrList{
+			in: Config{
 				All: []string{"true"},
 			},
 			out: "( true )",
 		},
 		{
 			name: "all with &&",
-			in: ExpressionOrList{
+			in: Config{
 				All: []string{"true", "true"},
 			},
 			out: "( true ) && ( true )",
 		},
 		{
 			name: "any",
-			in: ExpressionOrList{
+			in: Config{
 				All: []string{"true"},
 			},
 			out: "( true )",
 		},
 		{
 			name: "any with ||",
-			in: ExpressionOrList{
+			in: Config{
 				Any: []string{"true", "true"},
 			},
 			out: "( true ) || ( true )",

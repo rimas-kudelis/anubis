@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/TecharoHQ/anubis/lib/checker"
+	"github.com/TecharoHQ/anubis/lib/checker/expression"
 	"github.com/TecharoHQ/anubis/lib/checker/headermatches"
 	"github.com/TecharoHQ/anubis/lib/checker/path"
 	"github.com/TecharoHQ/anubis/lib/checker/remoteaddress"
@@ -115,7 +116,7 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 		}
 
 		if b.Expression != nil {
-			c, err := NewCELChecker(b.Expression)
+			c, err := expression.New(b.Expression)
 			if err != nil {
 				validationErrs = append(validationErrs, fmt.Errorf("while processing rule %s expressions: %w", b.Name, err))
 			} else {

@@ -1,4 +1,4 @@
-package config
+package expression
 
 import (
 	"encoding/json"
@@ -9,18 +9,18 @@ import (
 )
 
 var (
-	ErrExpressionOrListMustBeStringOrObject = errors.New("config: this must be a string or an object")
-	ErrExpressionEmpty                      = errors.New("config: this expression is empty")
-	ErrExpressionCantHaveBoth               = errors.New("config: expression block can't contain multiple expression types")
+	ErrExpressionOrListMustBeStringOrObject = errors.New("expression: this must be a string or an object")
+	ErrExpressionEmpty                      = errors.New("expression: this expression is empty")
+	ErrExpressionCantHaveBoth               = errors.New("expression: expression block can't contain multiple expression types")
 )
 
-type ExpressionOrList struct {
+type Config struct {
 	Expression string   `json:"-" yaml:"-"`
 	All        []string `json:"all,omitempty" yaml:"all,omitempty"`
 	Any        []string `json:"any,omitempty" yaml:"any,omitempty"`
 }
 
-func (eol ExpressionOrList) String() string {
+func (eol Config) String() string {
 	switch {
 	case len(eol.Expression) != 0:
 		return eol.Expression
@@ -46,7 +46,7 @@ func (eol ExpressionOrList) String() string {
 	panic("this should not happen")
 }
 
-func (eol ExpressionOrList) Equal(rhs *ExpressionOrList) bool {
+func (eol Config) Equal(rhs *Config) bool {
 	if eol.Expression != rhs.Expression {
 		return false
 	}
@@ -62,7 +62,7 @@ func (eol ExpressionOrList) Equal(rhs *ExpressionOrList) bool {
 	return true
 }
 
-func (eol *ExpressionOrList) MarshalYAML() (any, error) {
+func (eol *Config) MarshalYAML() (any, error) {
 	switch {
 	case len(eol.All) == 1 && len(eol.Any) == 0:
 		eol.Expression = eol.All[0]
@@ -76,11 +76,11 @@ func (eol *ExpressionOrList) MarshalYAML() (any, error) {
 		return eol.Expression, nil
 	}
 
-	type RawExpressionOrList ExpressionOrList
+	type RawExpressionOrList Config
 	return RawExpressionOrList(*eol), nil
 }
 
-func (eol *ExpressionOrList) MarshalJSON() ([]byte, error) {
+func (eol *Config) MarshalJSON() ([]byte, error) {
 	switch {
 	case len(eol.All) == 1 && len(eol.Any) == 0:
 		eol.Expression = eol.All[0]
@@ -94,17 +94,17 @@ func (eol *ExpressionOrList) MarshalJSON() ([]byte, error) {
 		return json.Marshal(string(eol.Expression))
 	}
 
-	type RawExpressionOrList ExpressionOrList
+	type RawExpressionOrList Config
 	val := RawExpressionOrList(*eol)
 	return json.Marshal(val)
 }
 
-func (eol *ExpressionOrList) UnmarshalJSON(data []byte) error {
+func (eol *Config) UnmarshalJSON(data []byte) error {
 	switch string(data[0]) {
 	case `"`: // string
 		return json.Unmarshal(data, &eol.Expression)
 	case "{": // object
-		type RawExpressionOrList ExpressionOrList
+		type RawExpressionOrList Config
 		var val RawExpressionOrList
 		if err := json.Unmarshal(data, &val); err != nil {
 			return err
@@ -118,7 +118,7 @@ func (eol *ExpressionOrList) UnmarshalJSON(data []byte) error {
 	return ErrExpressionOrListMustBeStringOrObject
 }
 
-func (eol *ExpressionOrList) Valid() error {
+func (eol *Config) Valid() error {
 	if eol.Expression == "" && len(eol.All) == 0 && len(eol.Any) == 0 {
 		return ErrExpressionEmpty
 	}

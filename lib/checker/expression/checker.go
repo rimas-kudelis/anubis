@@ -1,22 +1,22 @@
-package policy
+package expression
 
 import (
 	"fmt"
 	"net/http"
 
 	"github.com/TecharoHQ/anubis/internal"
-	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/TecharoHQ/anubis/lib/policy/expressions"
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common/types"
 )
 
-type CELChecker struct {
+type Checker struct {
 	program cel.Program
 	src     string
+	hash    string
 }
 
-func NewCELChecker(cfg *config.ExpressionOrList) (*CELChecker, error) {
+func New(cfg *Config) (*Checker, error) {
 	env, err := expressions.BotEnvironment()
 	if err != nil {
 		return nil, err
@@ -27,17 +27,18 @@ func NewCELChecker(cfg *config.ExpressionOrList) (*CELChecker, error) {
 		return nil, fmt.Errorf("can't compile CEL program: %w", err)
 	}
 
-	return &CELChecker{
+	return &Checker{
 		src:     cfg.String(),
+		hash:    internal.FastHash(cfg.String()),
 		program: program,
 	}, nil
 }
 
-func (cc *CELChecker) Hash() string {
-	return internal.FastHash(cc.src)
+func (cc *Checker) Hash() string {
+	return cc.hash
 }
 
-func (cc *CELChecker) Check(r *http.Request) (bool, error) {
+func (cc *Checker) Check(r *http.Request) (bool, error) {
 	result, _, err := cc.program.ContextEval(r.Context(), &CELRequest{r})
 
 	if err != nil {

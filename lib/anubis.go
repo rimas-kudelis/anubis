@@ -38,8 +38,7 @@ import (
 	_ "github.com/TecharoHQ/anubis/lib/checker/all"
 
 	// challenge implementations
-	_ "github.com/TecharoHQ/anubis/lib/challenge/metarefresh"
-	_ "github.com/TecharoHQ/anubis/lib/challenge/proofofwork"
+	_ "github.com/TecharoHQ/anubis/lib/challenge/all"
 )
 
 var (
