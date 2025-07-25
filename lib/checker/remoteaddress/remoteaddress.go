@@ -83,6 +83,14 @@ func (fc fileConfig) Valid() error {
 	return nil
 }
 
+func Valid(cidrs []string) error {
+	fc := fileConfig{
+		RemoteAddr: cidrs,
+	}
+
+	return fc.Valid()
+}
+
 func New(cidrs []string) (checker.Interface, error) {
 	fc := fileConfig{
 		RemoteAddr: cidrs,

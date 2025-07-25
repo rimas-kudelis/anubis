@@ -552,7 +552,7 @@ func (s *Server) check(r *http.Request) (policy.CheckResult, *policy.Bot, error)
 		if matches {
 			return cr("threshold/"+t.Name, t.Action, weight), &policy.Bot{
 				Challenge: t.Challenge,
-				Rules:     &checker.List{},
+				Rules:     &checker.Any{},
 			}, nil
 		}
 	}
@@ -563,6 +563,6 @@ func (s *Server) check(r *http.Request) (policy.CheckResult, *policy.Bot, error)
 			ReportAs:   s.policy.DefaultDifficulty,
 			Algorithm:  config.DefaultAlgorithm,
 		},
-		Rules: &checker.List{},
+		Rules: &checker.Any{},
 	}, nil
 }

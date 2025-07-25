@@ -9,6 +9,9 @@ import (
 	"sync/atomic"
 
 	"github.com/TecharoHQ/anubis/lib/checker"
+	"github.com/TecharoHQ/anubis/lib/checker/headermatches"
+	"github.com/TecharoHQ/anubis/lib/checker/path"
+	"github.com/TecharoHQ/anubis/lib/checker/remoteaddress"
 	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/TecharoHQ/anubis/lib/store"
 	"github.com/TecharoHQ/anubis/lib/thoth"
@@ -73,10 +76,10 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 			Action: b.Action,
 		}
 
-		cl := checker.List{}
+		cl := checker.Any{}
 
 		if len(b.RemoteAddr) > 0 {
-			c, err := NewRemoteAddrChecker(b.RemoteAddr)
+			c, err := remoteaddress.New(b.RemoteAddr)
 			if err != nil {
 				validationErrs = append(validationErrs, fmt.Errorf("while processing rule %s remote addr set: %w", b.Name, err))
 			} else {
@@ -85,7 +88,7 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 		}
 
 		if b.UserAgentRegex != nil {
-			c, err := NewUserAgentChecker(*b.UserAgentRegex)
+			c, err := headermatches.NewUserAgent(*b.UserAgentRegex)
 			if err != nil {
 				validationErrs = append(validationErrs, fmt.Errorf("while processing rule %s user agent regex: %w", b.Name, err))
 			} else {
@@ -94,7 +97,7 @@ func ParseConfig(ctx context.Context, fin io.Reader, fname string, defaultDiffic
 		}
 
 		if b.PathRegex != nil {
-			c, err := NewPathChecker(*b.PathRegex)
+			c, err := path.New(*b.PathRegex)
 			if err != nil {
 				validationErrs = append(validationErrs, fmt.Errorf("while processing rule %s path regex: %w", b.Name, err))
 			} else {

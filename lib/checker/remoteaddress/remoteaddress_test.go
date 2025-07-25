@@ -1,4 +1,4 @@
-package remoteaddress
+package remoteaddress_test
 
 import (
 	_ "embed"
@@ -8,17 +8,17 @@ import (
 	"testing"
 
 	"github.com/TecharoHQ/anubis/lib/checker"
-	"github.com/TecharoHQ/anubis/lib/policy/config"
+	"github.com/TecharoHQ/anubis/lib/checker/remoteaddress"
 )
 
 func TestFactoryIsCheckerFactory(t *testing.T) {
-	if _, ok := (any(Factory{})).(checker.Factory); !ok {
+	if _, ok := (any(remoteaddress.Factory{})).(checker.Factory); !ok {
 		t.Fatal("Factory is not an instance of checker.Factory")
 	}
 }
 
 func TestFactoryValidateConfig(t *testing.T) {
-	f := Factory{}
+	f := remoteaddress.Factory{}
 
 	for _, tt := range []struct {
 		name string
@@ -36,14 +36,14 @@ func TestFactoryValidateConfig(t *testing.T) {
 		{
 			name: "not json",
 			data: []byte(`]`),
-			err:  config.ErrUnparseableConfig,
+			err:  checker.ErrUnparseableConfig,
 		},
 		{
 			name: "no cidr",
 			data: []byte(`{
   "remote_addresses": []
 }`),
-			err: ErrNoRemoteAddresses,
+			err: remoteaddress.ErrNoRemoteAddresses,
 		},
 		{
 			name: "bad cidr",
@@ -52,7 +52,7 @@ func TestFactoryValidateConfig(t *testing.T) {
     "according to all laws of aviation"
   ]
 }`),
-			err: config.ErrInvalidCIDR,
+			err: remoteaddress.ErrInvalidCIDR,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestFactoryValidateConfig(t *testing.T) {
 }
 
 func TestFactoryCreate(t *testing.T) {
-	f := Factory{}
+	f := remoteaddress.Factory{}
 
 	for _, tt := range []struct {
 		name  string
@@ -94,7 +94,7 @@ func TestFactoryCreate(t *testing.T) {
     "according to all laws of aviation"
   ]
 }`),
-			err: config.ErrUnparseableConfig,
+			err: checker.ErrUnparseableConfig,
 		},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
