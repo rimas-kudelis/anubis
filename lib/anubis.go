@@ -466,9 +466,13 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		case errors.As(err, &cerr):
 			switch {
 			case errors.Is(err, challenge.ErrFailed):
+				lg.Error("challenge failed", "err", err)
 				s.respondWithStatus(w, r, cerr.PublicReason, cerr.StatusCode)
+				return
 			case errors.Is(err, challenge.ErrInvalidFormat), errors.Is(err, challenge.ErrMissingField):
+				lg.Error("invalid challenge format", "err", err)
 				s.respondWithError(w, r, cerr.PublicReason)
+				return
 			}
 		}
 	}
