@@ -118,7 +118,7 @@ func (s *Server) issueChallenge(ctx context.Context, r *http.Request) (*challeng
 		return nil, err
 	}
 
-	var randomData = make([]byte, 256)
+	var randomData = make([]byte, 64)
 	if _, err := rand.Read(randomData); err != nil {
 		return nil, err
 	}
