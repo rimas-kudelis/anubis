@@ -90,31 +90,6 @@ func (s *Server) getTokenKeyfunc() jwt.Keyfunc {
 	}
 }
 
-func (s *Server) challengeFor(r *http.Request, lg *slog.Logger, cr policy.CheckResult, rule *policy.Bot) (*challenge.Challenge, error) {
-	ckies := r.CookiesNamed(anubis.TestCookieName)
-
-	if len(ckies) == 0 {
-		lg.Info("no test cookie found, issuing new challenge")
-		return s.issueChallenge(r.Context(), r, lg, cr, rule)
-	}
-
-	j := store.JSON[challenge.Challenge]{Underlying: s.store}
-
-	ckie := ckies[0]
-	chall, err := j.Get(r.Context(), "challenge:"+ckie.Value)
-	if err != nil {
-		lg.Error("can't find challenge", "id", ckie.Value, "err", err)
-		if errors.Is(err, store.ErrNotFound) {
-			lg.Info("issuing new challenge because error is storeErrNotFound")
-			return s.issueChallenge(r.Context(), r, lg, cr, rule)
-		}
-
-		return nil, err
-	}
-
-	return &chall, nil
-}
-
 func (s *Server) getChallenge(r *http.Request) (*challenge.Challenge, error) {
 	ckies := r.CookiesNamed(anubis.TestCookieName)
 	if len(ckies) == 0 {
@@ -371,7 +346,7 @@ func (s *Server) MakeChallenge(w http.ResponseWriter, r *http.Request) {
 	}
 	lg = lg.With("check_result", cr)
 
-	chall, err := s.challengeFor(r, lg, cr, rule)
+	chall, err := s.issueChallenge(r.Context(), r, lg, cr, rule)
 	if err != nil {
 		lg.Error("failed to fetch or issue challenge", "err", err)
 		w.WriteHeader(http.StatusInternalServerError)
