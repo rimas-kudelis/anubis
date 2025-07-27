@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"sort"
 	"strings"
 
 	"github.com/TecharoHQ/anubis/lib/policy/config"
@@ -30,7 +29,7 @@ var (
 )
 
 type RobotsRule struct {
-	UserAgent   string
+	UserAgents  []string 
 	Disallows   []string
 	Allows      []string
 	CrawlDelay  int
@@ -161,17 +160,16 @@ func parseRobotsTxt(input io.Reader) ([]RobotsRule, error) {
 			// If we have accumulated rules with directives and encounter a new user-agent,
 			// flush the current rules
 			if len(currentUserAgents) > 0 && (len(currentDisallows) > 0 || len(currentAllows) > 0 || currentCrawlDelay > 0) {
-				for _, userAgent := range currentUserAgents {
-					rule := RobotsRule{
-						UserAgent:  userAgent,
-						Disallows:  make([]string, len(currentDisallows)),
-						Allows:     make([]string, len(currentAllows)),
-						CrawlDelay: currentCrawlDelay,
-					}
-					copy(rule.Disallows, currentDisallows)
-					copy(rule.Allows, currentAllows)
-					rules = append(rules, rule)
+				rule := RobotsRule{
+					UserAgents: make([]string, len(currentUserAgents)),
+					Disallows:  make([]string, len(currentDisallows)),
+					Allows:     make([]string, len(currentAllows)),
+					CrawlDelay: currentCrawlDelay,
 				}
+				copy(rule.UserAgents, currentUserAgents)
+				copy(rule.Disallows, currentDisallows)
+				copy(rule.Allows, currentAllows)
+				rules = append(rules, rule)
 				// Reset for next group
 				currentUserAgents = nil
 				currentDisallows = nil
@@ -201,17 +199,16 @@ func parseRobotsTxt(input io.Reader) ([]RobotsRule, error) {
 
 	// Don't forget the last group of rules
 	if len(currentUserAgents) > 0 {
-		for _, userAgent := range currentUserAgents {
-			rule := RobotsRule{
-				UserAgent:  userAgent,
-				Disallows:  make([]string, len(currentDisallows)),
-				Allows:     make([]string, len(currentAllows)),
-				CrawlDelay: currentCrawlDelay,
-			}
-			copy(rule.Disallows, currentDisallows)
-			copy(rule.Allows, currentAllows)
-			rules = append(rules, rule)
+		rule := RobotsRule{
+			UserAgents: make([]string, len(currentUserAgents)),
+			Disallows:  make([]string, len(currentDisallows)),
+			Allows:     make([]string, len(currentAllows)),
+			CrawlDelay: currentCrawlDelay,
 		}
+		copy(rule.UserAgents, currentUserAgents)
+		copy(rule.Disallows, currentDisallows)
+		copy(rule.Allows, currentAllows)
+		rules = append(rules, rule)
 	}
 
 	// Mark blacklisted user agents (those with "Disallow: /")
@@ -237,24 +234,82 @@ func convertToAnubisRules(robotsRules []RobotsRule) []AnubisRule {
 	var anubisRules []AnubisRule
 	ruleCounter := 0
 
-	// Group rules by their directives to create any blocks
-	blacklistGroups := make(map[string][]string)  // key: directive signature, value: user agents
-	disallowGroups := make(map[string][]string)   // key: path, value: user agents
-	crawlDelayGroups := make(map[string][]string) // key: delay, value: user agents
-
+	// Process each robots rule individually
 	for _, robotsRule := range robotsRules {
-		userAgent := robotsRule.UserAgent
+		userAgents := robotsRule.UserAgents
 
-		// Handle crawl delay groups
+		// Handle crawl delay
 		if robotsRule.CrawlDelay > 0 && *crawlDelay > 0 {
-			key := fmt.Sprintf("delay-%d", robotsRule.CrawlDelay)
-			crawlDelayGroups[key] = append(crawlDelayGroups[key], userAgent)
+			ruleCounter++
+			rule := AnubisRule{
+				Name:   fmt.Sprintf("%s-crawl-delay-%d", *policyName, ruleCounter),
+				Action: "WEIGH",
+				Weight: &config.Weight{Adjust: *crawlDelay},
+			}
+
+			if len(userAgents) == 1 && userAgents[0] == "*" {
+				rule.Expression = &config.ExpressionOrList{
+					All: []string{"true"}, // Always applies
+				}
+			} else if len(userAgents) == 1 {
+				rule.Expression = &config.ExpressionOrList{
+					All: []string{fmt.Sprintf("userAgent.contains(%q)", userAgents[0])},
+				}
+			} else {
+				// Multiple user agents - use any block
+				var expressions []string
+				for _, ua := range userAgents {
+					if ua == "*" {
+						expressions = append(expressions, "true")
+					} else {
+						expressions = append(expressions, fmt.Sprintf("userAgent.contains(%q)", ua))
+					}
+				}
+				rule.Expression = &config.ExpressionOrList{
+					Any: expressions,
+				}
+			}
+			anubisRules = append(anubisRules, rule)
 		}
 
 		// Handle blacklisted user agents
 		if robotsRule.IsBlacklist {
-			key := "blacklist"
-			blacklistGroups[key] = append(blacklistGroups[key], userAgent)
+			ruleCounter++
+			rule := AnubisRule{
+				Name:   fmt.Sprintf("%s-blacklist-%d", *policyName, ruleCounter),
+				Action: *userAgentDeny,
+			}
+
+			if len(userAgents) == 1 {
+				userAgent := userAgents[0]
+				if userAgent == "*" {
+					// This would block everything - convert to a weight adjustment instead
+					rule.Name = fmt.Sprintf("%s-global-restriction-%d", *policyName, ruleCounter)
+					rule.Action = "WEIGH"
+					rule.Weight = &config.Weight{Adjust: 20} // Increase difficulty significantly
+					rule.Expression = &config.ExpressionOrList{
+						All: []string{"true"}, // Always applies
+					}
+				} else {
+					rule.Expression = &config.ExpressionOrList{
+						All: []string{fmt.Sprintf("userAgent.contains(%q)", userAgent)},
+					}
+				}
+			} else {
+				// Multiple user agents - use any block
+				var expressions []string
+				for _, ua := range userAgents {
+					if ua == "*" {
+						expressions = append(expressions, "true")
+					} else {
+						expressions = append(expressions, fmt.Sprintf("userAgent.contains(%q)", ua))
+					}
+				}
+				rule.Expression = &config.ExpressionOrList{
+					Any: expressions,
+				}
+			}
+			anubisRules = append(anubisRules, rule)
 		}
 
 		// Handle specific disallow rules
@@ -262,168 +317,64 @@ func convertToAnubisRules(robotsRules []RobotsRule) []AnubisRule {
 			if disallow == "/" {
 				continue // Already handled as blacklist above
 			}
-			disallowGroups[disallow] = append(disallowGroups[disallow], userAgent)
-		}
-	}
 
-	// Generate rules for crawl delays
-	// Sort keys for deterministic order
-	var crawlDelayKeys []string
-	for key := range crawlDelayGroups {
-		crawlDelayKeys = append(crawlDelayKeys, key)
-	}
-	sort.Strings(crawlDelayKeys)
-
-	for _, key := range crawlDelayKeys {
-		userAgents := crawlDelayGroups[key]
-		ruleCounter++
-		rule := AnubisRule{
-			Name:   fmt.Sprintf("%s-crawl-delay-%d", *policyName, ruleCounter),
-			Action: "WEIGH",
-			Weight: &config.Weight{Adjust: *crawlDelay},
-		}
-
-		if len(userAgents) == 1 && userAgents[0] == "*" {
-			rule.Expression = &config.ExpressionOrList{
-				All: []string{"true"}, // Always applies
+			ruleCounter++
+			rule := AnubisRule{
+				Name:   fmt.Sprintf("%s-disallow-%d", *policyName, ruleCounter),
+				Action: *baseAction,
 			}
-		} else if len(userAgents) == 1 {
-			rule.Expression = &config.ExpressionOrList{
-				All: []string{fmt.Sprintf("userAgent.contains(%q)", userAgents[0])},
-			}
-		} else {
-			// Multiple user agents - use any block
-			var expressions []string
-			for _, ua := range userAgents {
-				if ua == "*" {
-					expressions = append(expressions, "true")
-				} else {
-					expressions = append(expressions, fmt.Sprintf("userAgent.contains(%q)", ua))
-				}
-			}
-			rule.Expression = &config.ExpressionOrList{
-				Any: expressions,
-			}
-		}
 
-		anubisRules = append(anubisRules, rule)
-	}
+			// Build CEL expression
+			var conditions []string
 
-	// Generate rules for blacklisted user agents
-	// Sort keys for deterministic order
-	var blacklistKeys []string
-	for key := range blacklistGroups {
-		blacklistKeys = append(blacklistKeys, key)
-	}
-	sort.Strings(blacklistKeys)
-
-	for _, key := range blacklistKeys {
-		userAgents := blacklistGroups[key]
-		ruleCounter++
-		rule := AnubisRule{
-			Name:   fmt.Sprintf("%s-blacklist-%d", *policyName, ruleCounter),
-			Action: *userAgentDeny,
-		}
-
-		if len(userAgents) == 1 {
-			userAgent := userAgents[0]
-			if userAgent == "*" {
-				// This would block everything - convert to a weight adjustment instead
-				rule.Name = fmt.Sprintf("%s-global-restriction-%d", *policyName, ruleCounter)
-				rule.Action = "WEIGH"
-				rule.Weight = &config.Weight{Adjust: 20} // Increase difficulty significantly
-				rule.Expression = &config.ExpressionOrList{
-					All: []string{"true"}, // Always applies
-				}
+			// Add user agent conditions
+			if len(userAgents) == 1 && userAgents[0] == "*" {
+				// Wildcard user agent - no user agent condition needed
+			} else if len(userAgents) == 1 {
+				conditions = append(conditions, fmt.Sprintf("userAgent.contains(%q)", userAgents[0]))
 			} else {
-				rule.Expression = &config.ExpressionOrList{
-					All: []string{fmt.Sprintf("userAgent.contains(%q)", userAgent)},
+				// Multiple user agents - use any block for user agents
+				var uaExpressions []string
+				for _, ua := range userAgents {
+					if ua == "*" {
+						uaExpressions = append(uaExpressions, "true")
+					} else {
+						uaExpressions = append(uaExpressions, fmt.Sprintf("userAgent.contains(%q)", ua))
+					}
 				}
-			}
-		} else {
-			// Multiple user agents - use any block
-			var expressions []string
-			for _, ua := range userAgents {
-				if ua == "*" {
-					expressions = append(expressions, "true")
-				} else {
-					expressions = append(expressions, fmt.Sprintf("userAgent.contains(%q)", ua))
-				}
-			}
-			rule.Expression = &config.ExpressionOrList{
-				Any: expressions,
-			}
-		}
-
-		anubisRules = append(anubisRules, rule)
-	}
-
-	// Generate rules for specific disallow paths
-	// Sort keys for deterministic order
-	var disallowKeys []string
-	for key := range disallowGroups {
-		disallowKeys = append(disallowKeys, key)
-	}
-	sort.Strings(disallowKeys)
-	
-	for _, path := range disallowKeys {
-		userAgents := disallowGroups[path]
-		ruleCounter++
-		rule := AnubisRule{
-			Name:   fmt.Sprintf("%s-disallow-%d", *policyName, ruleCounter),
-			Action: *baseAction,
-		}
-
-		// Build CEL expression
-		var conditions []string
-
-		// Add user agent conditions
-		if len(userAgents) == 1 && userAgents[0] == "*" {
-			// Wildcard user agent - no user agent condition needed
-		} else if len(userAgents) == 1 {
-			conditions = append(conditions, fmt.Sprintf("userAgent.contains(%q)", userAgents[0]))
-		} else {
-			// Multiple user agents - use any block for user agents
-			var uaExpressions []string
-			for _, ua := range userAgents {
-				if ua == "*" {
-					uaExpressions = append(uaExpressions, "true")
-				} else {
-					uaExpressions = append(uaExpressions, fmt.Sprintf("userAgent.contains(%q)", ua))
-				}
-			}
-			// For multiple user agents, we need to use a more complex expression
-			// This is a limitation - we can't easily combine any for user agents with all for path
-			// So we'll create separate rules for each user agent
-			for _, ua := range userAgents {
-				if ua == "*" {
-					continue // Skip wildcard as it's handled separately
-				}
-				ruleCounter++
-				subRule := AnubisRule{
-					Name:   fmt.Sprintf("%s-disallow-%d", *policyName, ruleCounter),
-					Action: *baseAction,
-					Expression: &config.ExpressionOrList{
-						All: []string{
-							fmt.Sprintf("userAgent.contains(%q)", ua),
-							buildPathCondition(path),
+				// For multiple user agents, we need to use a more complex expression
+				// This is a limitation - we can't easily combine any for user agents with all for path
+				// So we'll create separate rules for each user agent
+				for _, ua := range userAgents {
+					if ua == "*" {
+						continue // Skip wildcard as it's handled separately
+					}
+					ruleCounter++
+					subRule := AnubisRule{
+						Name:   fmt.Sprintf("%s-disallow-%d", *policyName, ruleCounter),
+						Action: *baseAction,
+						Expression: &config.ExpressionOrList{
+							All: []string{
+								fmt.Sprintf("userAgent.contains(%q)", ua),
+								buildPathCondition(disallow),
+							},
 						},
-					},
+					}
+					anubisRules = append(anubisRules, subRule)
 				}
-				anubisRules = append(anubisRules, subRule)
+				continue
 			}
-			continue
+
+			// Add path condition
+			pathCondition := buildPathCondition(disallow)
+			conditions = append(conditions, pathCondition)
+
+			rule.Expression = &config.ExpressionOrList{
+				All: conditions,
+			}
+
+			anubisRules = append(anubisRules, rule)
 		}
-
-		// Add path condition
-		pathCondition := buildPathCondition(path)
-		conditions = append(conditions, pathCondition)
-
-		rule.Expression = &config.ExpressionOrList{
-			All: conditions,
-		}
-
-		anubisRules = append(anubisRules, rule)
 	}
 
 	return anubisRules
