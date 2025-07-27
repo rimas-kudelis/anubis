@@ -29,7 +29,7 @@ var (
 )
 
 type RobotsRule struct {
-	UserAgents  []string 
+	UserAgents  []string
 	Disallows   []string
 	Allows      []string
 	CrawlDelay  int
@@ -333,15 +333,6 @@ func convertToAnubisRules(robotsRules []RobotsRule) []AnubisRule {
 			} else if len(userAgents) == 1 {
 				conditions = append(conditions, fmt.Sprintf("userAgent.contains(%q)", userAgents[0]))
 			} else {
-				// Multiple user agents - use any block for user agents
-				var uaExpressions []string
-				for _, ua := range userAgents {
-					if ua == "*" {
-						uaExpressions = append(uaExpressions, "true")
-					} else {
-						uaExpressions = append(uaExpressions, fmt.Sprintf("userAgent.contains(%q)", ua))
-					}
-				}
 				// For multiple user agents, we need to use a more complex expression
 				// This is a limitation - we can't easily combine any for user agents with all for path
 				// So we'll create separate rules for each user agent
