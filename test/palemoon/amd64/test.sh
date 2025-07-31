@@ -13,6 +13,11 @@ function capture_vnc_snapshots() {
   done
 }
 
+function timeout() {
+  sleep 180
+  exit 1
+}
+
 source ../../lib/lib.sh
 
 if [ "$GITHUB_ACTIONS" = "true" ]; then
