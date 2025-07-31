@@ -29,6 +29,7 @@ set -euo pipefail
 build_anubis_ko
 mint_cert relayd
 
+timeout &
 go run ../../cmd/cipra/ --compose-name $(basename $(pwd))
 
 docker compose down -t 1 || :
