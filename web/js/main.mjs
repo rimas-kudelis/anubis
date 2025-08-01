@@ -1,9 +1,8 @@
-import processFast from "./proof-of-work.mjs";
-import processSlow from "./proof-of-work-slow.mjs";
+import process from "./proof-of-work.mjs";
 
 const algorithms = {
-  fast: processFast,
-  slow: processSlow,
+  fast: process,
+  slow: process,
 };
 
 // from Xeact
