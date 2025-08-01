@@ -1,9 +1,4 @@
-import process from "./proof-of-work.mjs";
-
-const algorithms = {
-  fast: process,
-  slow: process,
-};
+import algorithms from "./algorithms/index.mjs";
 
 // from Xeact
 const u = (url = "", params = {}) => {
@@ -170,6 +165,7 @@ const t = (key) => translations[`js_${key}`] || translations[key] || key;
   try {
     const t0 = Date.now();
     const { hash, nonce } = await process(
+      { basePrefix, version: anubisVersion },
       challenge,
       rules.difficulty,
       null,
