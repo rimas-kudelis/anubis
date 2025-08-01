@@ -108,15 +108,6 @@ const t = (key) => translations[`js_${key}`] || translations[key] || key;
     progress.style.display = "none";
   };
 
-  if (!window.isSecureContext) {
-    ohNoes({
-      titleMsg: t('context_not_secure'),
-      statusMsg: t('context_not_secure_msg'),
-      imageSrc: imageURL("reject", anubisVersion, basePrefix),
-    });
-    return;
-  }
-
   status.innerHTML = t('calculating');
 
   for (const { value, name, msg } of dependencies) {
