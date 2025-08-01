@@ -70,11 +70,6 @@ const t = (key) => translations[`js_${key}`] || translations[key] || key;
 
   const dependencies = [
     {
-      name: "WebCrypto",
-      msg: t('web_crypto_error'),
-      value: window.crypto,
-    },
-    {
       name: "Web Workers",
       msg: t('web_workers_error'),
       value: window.Worker,
