@@ -25,9 +25,7 @@ type Impl struct {
 	Algorithm string
 }
 
-func (i *Impl) Setup(mux *http.ServeMux) {
-	/* no implementation required */
-}
+func (i *Impl) Setup(mux *http.ServeMux) {}
 
 func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *chall.IssueInput) (templ.Component, error) {
 	loc := localization.GetLocalizer(r)

@@ -31,6 +31,7 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput)
 	q := u.Query()
 	q.Set("redir", r.URL.String())
 	q.Set("challenge", in.Challenge.RandomData)
+	q.Set("id", in.Challenge.ID)
 	u.RawQuery = q.Encode()
 
 	loc := localization.GetLocalizer(r)
