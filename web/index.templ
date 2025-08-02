@@ -81,6 +81,7 @@ templ base(title string, body templ.Component, impressum *config.Impressum, chal
 								-- <a href={ templ.SafeURL(fmt.Sprintf("%simprint", anubis.APIPrefix)) }>Imprint</a>
 							</p>
 						}
+						<p>{ localizer.T("version_info") } <code>{ anubis.Version }</code>.</p>
 					</div>
 				</footer>
 			</main>
