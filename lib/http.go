@@ -174,13 +174,20 @@ func (s *Server) RenderIndex(w http.ResponseWriter, r *http.Request, cr policy.C
 
 	component, err := impl.Issue(r, lg, in)
 	if err != nil {
-		lg.Error("[unexpected] render failed, please open an issue", "err", err) // This is likely a bug in the template. Should never be triggered as CI tests for this.
+		lg.Error("[unexpected] challenge component render failed, please open an issue", "err", err) // This is likely a bug in the template. Should never be triggered as CI tests for this.
+		s.respondWithError(w, r, fmt.Sprintf("%s \"RenderIndex\"", localizer.T("internal_server_error")))
+		return
+	}
+
+	page, err := web.BaseWithChallengeAndOGTags(localizer.T("making_sure_not_bot"), component, in.Impressum, in.Challenge.RandomData, in.Rule.Challenge, in.OGTags, localizer)
+	if err != nil {
+		lg.Error("[unexpected] challenge page render failed, please open an issue", "err", err) // This is likely a bug in the template. Should never be triggered as CI tests for this.
 		s.respondWithError(w, r, fmt.Sprintf("%s \"RenderIndex\"", localizer.T("internal_server_error")))
 		return
 	}
 
 	handler := internal.GzipMiddleware(1, internal.NoStoreCache(templ.Handler(
-		component,
+		page,
 		templ.WithStatus(s.opts.Policy.StatusCodes.Challenge),
 	)))
 	handler.ServeHTTP(w, r)

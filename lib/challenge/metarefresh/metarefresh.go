@@ -9,7 +9,6 @@ import (
 	"github.com/TecharoHQ/anubis"
 	"github.com/TecharoHQ/anubis/lib/challenge"
 	"github.com/TecharoHQ/anubis/lib/localization"
-	"github.com/TecharoHQ/anubis/web"
 	"github.com/a-h/templ"
 )
 
@@ -35,13 +34,10 @@ func (i *Impl) Issue(r *http.Request, lg *slog.Logger, in *challenge.IssueInput)
 	u.RawQuery = q.Encode()
 
 	loc := localization.GetLocalizer(r)
-	component, err := web.BaseWithChallengeAndOGTags(loc.T("making_sure_not_bot"), page(u.String(), in.Rule.Challenge.Difficulty, loc), in.Impressum, in.Challenge.RandomData, in.Rule.Challenge, in.OGTags, loc)
 
-	if err != nil {
-		return nil, fmt.Errorf("can't render page: %w", err)
-	}
+	result := page(u.String(), in.Rule.Challenge.Difficulty, loc)
 
-	return component, nil
+	return result, nil
 }
 
 func (i *Impl) Validate(r *http.Request, lg *slog.Logger, in *challenge.ValidateInput) error {

@@ -21,10 +21,6 @@ func BaseWithChallengeAndOGTags(title string, body templ.Component, impressum *c
 	}, ogTags, localizer), nil
 }
 
-func Index(localizer *localization.SimpleLocalizer) templ.Component {
-	return index(localizer)
-}
-
 func ErrorPage(msg, mail string, localizer *localization.SimpleLocalizer) templ.Component {
 	return errorPage(msg, mail, localizer)
 }
