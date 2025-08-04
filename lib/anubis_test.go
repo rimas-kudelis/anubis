@@ -35,6 +35,8 @@ func loadPolicies(t *testing.T, fname string, difficulty int) *policy.ParsedConf
 		fname = "./testdata/test_config.yaml"
 	}
 
+	t.Logf("loading policy file: %s", fname)
+
 	anubisPolicy, err := LoadPoliciesOrDefault(ctx, fname, difficulty)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +61,7 @@ func spawnAnubis(t *testing.T, opts Options) *Server {
 }
 
 type challengeResp struct {
+	ID        string `json:"id"`
 	Challenge string `json:"challenge"`
 }
 
@@ -91,6 +94,8 @@ func makeChallenge(t *testing.T, ts *httptest.Server, cli *http.Client) challeng
 func handleChallengeZeroDifficulty(t *testing.T, ts *httptest.Server, cli *http.Client, chall challengeResp) *http.Response {
 	t.Helper()
 
+	t.Logf("%#v", chall)
+
 	nonce := 0
 	elapsedTime := 420
 	redir := "/"
@@ -108,7 +113,10 @@ func handleChallengeZeroDifficulty(t *testing.T, ts *httptest.Server, cli *http.
 	q.Set("nonce", fmt.Sprint(nonce))
 	q.Set("redir", redir)
 	q.Set("elapsedTime", fmt.Sprint(elapsedTime))
+	q.Set("id", chall.ID)
 	req.URL.RawQuery = q.Encode()
+
+	t.Log(q.Encode())
 
 	resp, err := cli.Do(req)
 	if err != nil {
@@ -155,6 +163,17 @@ func (lcj *loggingCookieJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
 	lcj.cookies[u.Host] = append(lcj.cookies[u.Host], cookies...)
 }
 
+type userAgentRoundTripper struct {
+	rt http.RoundTripper
+}
+
+func (u *userAgentRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	// Only set if not already present
+	req = req.Clone(req.Context()) // avoid mutating original request
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	return u.rt.RoundTrip(req)
+}
+
 func httpClient(t *testing.T) *http.Client {
 	t.Helper()
 
@@ -162,6 +181,9 @@ func httpClient(t *testing.T) *http.Client {
 		Jar: &loggingCookieJar{t: t, cookies: map[string][]*http.Cookie{}},
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
+		},
+		Transport: &userAgentRoundTripper{
+			rt: http.DefaultTransport,
 		},
 	}
 
@@ -325,7 +347,7 @@ func TestCheckDefaultDifficultyMatchesPolicy(t *testing.T) {
 
 	for i := 1; i < 10; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
-			anubisPolicy := loadPolicies(t, "", i)
+			anubisPolicy := loadPolicies(t, "testdata/test_config_no_thresholds.yaml", i)
 
 			s, err := New(Options{
 				Next:           h,
@@ -476,7 +498,10 @@ func TestBasePrefix(t *testing.T) {
 			q.Set("nonce", fmt.Sprint(nonce))
 			q.Set("redir", redir)
 			q.Set("elapsedTime", fmt.Sprint(elapsedTime))
+			q.Set("id", chall.ID)
 			req.URL.RawQuery = q.Encode()
+
+			t.Log(req.URL.String())
 
 			resp, err = cli.Do(req)
 			if err != nil {

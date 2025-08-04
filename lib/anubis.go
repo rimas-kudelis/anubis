@@ -369,9 +369,11 @@ func (s *Server) MakeChallenge(w http.ResponseWriter, r *http.Request) {
 	err = encoder.Encode(struct {
 		Rules     *config.ChallengeRules `json:"rules"`
 		Challenge string                 `json:"challenge"`
+		ID        string                 `json:"id"`
 	}{
-		Challenge: chall.RandomData,
 		Rules:     rule.Challenge,
+		Challenge: chall.RandomData,
+		ID:        chall.ID,
 	})
 	if err != nil {
 		lg.Error("failed to encode challenge", "err", err)
