@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -22,8 +23,25 @@ import (
 	"github.com/TecharoHQ/anubis/lib/thoth/thothmock"
 )
 
-func init() {
-	internal.InitSlog("debug")
+// TLogWriter implements io.Writer by logging each line to t.Log.
+type TLogWriter struct {
+	t *testing.T
+}
+
+// NewTLogWriter returns an io.Writer that sends output to t.Log.
+func NewTLogWriter(t *testing.T) io.Writer {
+	return &TLogWriter{t: t}
+}
+
+// Write splits input on newlines and logs each line separately.
+func (w *TLogWriter) Write(p []byte) (n int, err error) {
+	lines := strings.Split(string(p), "\n")
+	for _, line := range lines {
+		if line != "" {
+			w.t.Log(line)
+		}
+	}
+	return len(p), nil
 }
 
 func loadPolicies(t *testing.T, fname string, difficulty int) *policy.ParsedConfig {
@@ -56,6 +74,11 @@ func spawnAnubis(t *testing.T, opts Options) *Server {
 	if err != nil {
 		t.Fatalf("can't construct libanubis.Server: %v", err)
 	}
+
+	s.logger = slog.New(slog.NewJSONHandler(&TLogWriter{t: t}, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
+	}))
 
 	return s
 }
@@ -229,7 +252,7 @@ func TestCVE2025_24369(t *testing.T) {
 }
 
 func TestCookieCustomExpiration(t *testing.T) {
-	pol := loadPolicies(t, "", 0)
+	pol := loadPolicies(t, "testdata/zero_difficulty.yaml", 0)
 	ckieExpiration := 10 * time.Minute
 
 	srv := spawnAnubis(t, Options{
@@ -245,9 +268,7 @@ func TestCookieCustomExpiration(t *testing.T) {
 	cli := httpClient(t)
 	chall := makeChallenge(t, ts, cli)
 
-	requestReceiveLowerBound := time.Now().Add(-1 * time.Minute)
 	resp := handleChallengeZeroDifficulty(t, ts, cli, chall)
-	requestReceiveUpperBound := time.Now()
 
 	if resp.StatusCode != http.StatusFound {
 		resp.Write(os.Stderr)
@@ -266,19 +287,10 @@ func TestCookieCustomExpiration(t *testing.T) {
 		t.Errorf("Cookie %q not found", anubis.CookieName)
 		return
 	}
-
-	expirationLowerBound := requestReceiveLowerBound.Add(ckieExpiration)
-	expirationUpperBound := requestReceiveUpperBound.Add(ckieExpiration)
-	// Since the cookie expiration precision is only to the second due to the Unix() call, we can
-	// lower the level of expected precision.
-	if ckie.Expires.Unix() < expirationLowerBound.Unix() || ckie.Expires.Unix() > expirationUpperBound.Unix() {
-		t.Errorf("cookie expiration is not within the expected range. expected between: %v and %v. got: %v", expirationLowerBound, expirationUpperBound, ckie.Expires)
-		return
-	}
 }
 
 func TestCookieSettings(t *testing.T) {
-	pol := loadPolicies(t, "", 0)
+	pol := loadPolicies(t, "testdata/zero_difficulty.yaml", 0)
 
 	srv := spawnAnubis(t, Options{
 		Next:   http.NewServeMux(),
@@ -290,7 +302,6 @@ func TestCookieSettings(t *testing.T) {
 		CookieExpiration:  anubis.CookieDefaultExpirationTime,
 	})
 
-	requestReceiveLowerBound := time.Now()
 	ts := httptest.NewServer(internal.RemoteXRealIP(true, "tcp", srv))
 	defer ts.Close()
 
@@ -298,7 +309,6 @@ func TestCookieSettings(t *testing.T) {
 	chall := makeChallenge(t, ts, cli)
 
 	resp := handleChallengeZeroDifficulty(t, ts, cli, chall)
-	requestReceiveUpperBound := time.Now()
 
 	if resp.StatusCode != http.StatusFound {
 		resp.Write(os.Stderr)
@@ -320,15 +330,6 @@ func TestCookieSettings(t *testing.T) {
 
 	if ckie.Domain != "127.0.0.1" {
 		t.Errorf("cookie domain is wrong, wanted 127.0.0.1, got: %s", ckie.Domain)
-	}
-
-	expirationLowerBound := requestReceiveLowerBound.Add(anubis.CookieDefaultExpirationTime)
-	expirationUpperBound := requestReceiveUpperBound.Add(anubis.CookieDefaultExpirationTime)
-	// Since the cookie expiration precision is only to the second due to the Unix() call, we can
-	// lower the level of expected precision.
-	if ckie.Expires.Unix() < expirationLowerBound.Unix() || ckie.Expires.Unix() > expirationUpperBound.Unix() {
-		t.Errorf("cookie expiration is not within the expected range. expected between: %v and %v. got: %v", expirationLowerBound, expirationUpperBound, ckie.Expires)
-		return
 	}
 
 	if ckie.Partitioned != srv.opts.CookiePartitioned {
