@@ -63,6 +63,7 @@ Cromite
 crt
 Cscript
 daemonizing
+dayjob
 DDOS
 Debian
 debrpm
@@ -98,6 +99,7 @@ Factset
 fastcgi
 fediverse
 ffprobe
+financials
 finfos
 Firecrawl
 flagenv
