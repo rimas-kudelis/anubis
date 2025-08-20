@@ -287,6 +287,7 @@ SVCNAME
 tagline
 tarballs
 tarrif
+taviso
 tbn
 tbr
 techaro
