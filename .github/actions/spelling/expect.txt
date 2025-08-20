@@ -141,6 +141,7 @@ htmlc
 htmx
 httpdebug
 Huawei
+huawei
 hypertext
 iaskspider
 iaso
