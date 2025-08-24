@@ -241,6 +241,13 @@ func (s *Server) maybeReverseProxy(w http.ResponseWriter, r *http.Request, httpS
 		return
 	}
 
+	if s.opts.JWTRestrictionHeader != "" && claims["restriction"] != internal.SHA256sum(r.Header.Get(s.opts.JWTRestrictionHeader)) {
+		lg.Debug("JWT restriction header is invalid")
+		s.ClearCookie(w, CookieOpts{Path: cookiePath, Host: r.Host})
+		s.RenderIndex(w, r, cr, rule, httpStatusOnly)
+		return
+	}
+
 	r.Header.Add("X-Anubis-Status", "PASS")
 	s.ServeHTTPNext(w, r)
 }
@@ -451,6 +458,12 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if chall.Spent {
+		lg.Error("double spend prevented", "reason", "double_spend")
+		s.respondWithError(w, r, fmt.Sprintf("%s: %s", localizer.T("internal_server_error"), "double_spend"))
+		return
+	}
+
 	impl, ok := challenge.Get(chall.Method)
 	if !ok {
 		lg.Error("check failed", "err", err)
@@ -488,12 +501,33 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate JWT cookie
-	tokenString, err := s.signJWT(jwt.MapClaims{
-		"challenge":  chall.ID,
-		"method":     rule.Challenge.Algorithm,
-		"policyRule": rule.Hash(),
-		"action":     string(cr.Rule),
-	})
+	var tokenString string
+
+	// check if JWTRestrictionHeader is set and header is in request
+	if s.opts.JWTRestrictionHeader != "" {
+		if r.Header.Get(s.opts.JWTRestrictionHeader) == "" {
+			lg.Error("JWTRestrictionHeader is set in config but not found in request, please check your reverse proxy config.")
+			s.ClearCookie(w, CookieOpts{Path: cookiePath, Host: r.Host})
+			s.respondWithError(w, r, "failed to sign JWT")
+			return
+		} else {
+			tokenString, err = s.signJWT(jwt.MapClaims{
+				"challenge":   chall.ID,
+				"method":      rule.Challenge.Algorithm,
+				"policyRule":  rule.Hash(),
+				"action":      string(cr.Rule),
+				"restriction": internal.SHA256sum(r.Header.Get(s.opts.JWTRestrictionHeader)),
+			})
+		}
+	} else {
+		tokenString, err = s.signJWT(jwt.MapClaims{
+			"challenge":  chall.ID,
+			"method":     rule.Challenge.Algorithm,
+			"policyRule": rule.Hash(),
+			"action":     string(cr.Rule),
+		})
+	}
+
 	if err != nil {
 		lg.Error("failed to sign JWT", "err", err)
 		s.ClearCookie(w, CookieOpts{Path: cookiePath, Host: r.Host})
@@ -502,6 +536,12 @@ func (s *Server) PassChallenge(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.SetCookie(w, CookieOpts{Path: cookiePath, Host: r.Host, Value: tokenString})
+
+	chall.Spent = true
+	j := store.JSON[challenge.Challenge]{Underlying: s.store}
+	if err := j.Set(r.Context(), "challenge:"+chall.ID, *chall, 30*time.Minute); err != nil {
+		lg.Debug("can't update information about challenge", "err", err)
+	}
 
 	challengesValidated.WithLabelValues(rule.Challenge.Algorithm).Inc()
 	lg.Debug("challenge passed, redirecting to app")
