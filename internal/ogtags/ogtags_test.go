@@ -99,16 +99,16 @@ func TestNewOGTagCache_UnixSocket(t *testing.T) {
 	}
 
 	// Check if the client transport is configured for Unix sockets
-	transport, ok := cache.client.Transport.(*http.Transport)
+	roundTripper, ok := cache.client.Transport.(*unixRoundTripper)
 	if !ok {
-		t.Fatalf("expected client transport to be *http.Transport, got %T", cache.client.Transport)
+		t.Fatalf("expected client transport to be *unixRoundTripper, got %T", cache.client.Transport)
 	}
-	if transport.DialContext == nil {
+	if roundTripper.Transport.DialContext == nil {
 		t.Fatal("expected client transport DialContext to be non-nil for unix socket")
 	}
 
 	// Attempt a dummy dial to see if it uses the correct path (optional, more involved check)
-	dummyConn, err := transport.DialContext(context.Background(), "", "")
+	dummyConn, err := roundTripper.Transport.DialContext(context.Background(), "", "")
 	if err == nil {
 		dummyConn.Close()
 		t.Log("DialContext seems functional, but couldn't verify path without a listener")

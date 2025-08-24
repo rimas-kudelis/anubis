@@ -21,6 +21,24 @@ const (
 	querySeparatorLength  = 1 // Length of "?" for query strings
 )
 
+// unixRoundTripper wraps an http.Transport to handle Unix socket requests properly
+// by ensuring the URL scheme is set to "http" to avoid TLS issues.
+// Based on the UnixRoundTripper implementation in lib/http.go
+type unixRoundTripper struct {
+	Transport *http.Transport
+}
+
+// RoundTrip implements the http.RoundTripper interface
+func (t *unixRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = req.Clone(req.Context())
+	if req.Host == "" {
+		req.Host = "localhost"
+	}
+	req.URL.Host = req.Host
+	req.URL.Scheme = "http" // Ensure HTTP scheme to avoid "server gave HTTP response to HTTPS client" error
+	return t.Transport.RoundTrip(req)
+}
+
 type OGTagCache struct {
 	cache     store.JSON[map[string]string]
 	targetURL *url.URL
@@ -69,11 +87,12 @@ func NewOGTagCache(target string, conf config.OpenGraph, backend store.Interface
 	// Configure custom transport for Unix sockets
 	if parsedTargetURL.Scheme == "unix" {
 		socketPath := parsedTargetURL.Path // For unix scheme, path is the socket path
-		client.Transport = &http.Transport{
+		transport := &http.Transport{
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", socketPath)
 			},
 		}
+		client.Transport = &unixRoundTripper{Transport: transport}
 	}
 
 	return &OGTagCache{

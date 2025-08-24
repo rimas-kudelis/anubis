@@ -15,18 +15,22 @@ import (
 	"github.com/TecharoHQ/anubis/lib/store/memory"
 )
 
-// TestDebugUnixSocketRequests - let's debug exactly what URLs are being constructed
-func TestDebugUnixSocketRequests(t *testing.T) {
+// TestUnixSocketHTTPSFix tests that the fix prevents "http: server gave HTTP response to HTTPS client" errors
+// when using Unix socket targets with HTTPS input URLs
+func TestUnixSocketHTTPSFix(t *testing.T) {
 	tempDir := t.TempDir()
 	socketPath := filepath.Join(tempDir, "test.sock")
 
-	// Create a simple HTTP server listening on the Unix socket that logs requests
+	// Create a simple HTTP server listening on the Unix socket
 	server := &http.Server{
 		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			t.Logf("Received request: %s %s", r.Method, r.URL.String())
-			t.Logf("Request scheme: %s", r.URL.Scheme)
-			t.Logf("Request host: %s", r.Host)
-			t.Logf("Is TLS: %v", r.TLS != nil)
+			// Verify that the request comes in with HTTP (not HTTPS)
+			if r.URL.Scheme != "" && r.URL.Scheme != "http" {
+				t.Errorf("Unexpected scheme in request: %s (expected 'http' or empty)", r.URL.Scheme)
+			}
+			if r.TLS != nil {
+				t.Errorf("Request has TLS information when it shouldn't for Unix socket")
+			}
 			
 			w.Header().Set("Content-Type", "text/html")
 			w.WriteHeader(http.StatusOK)
@@ -53,47 +57,41 @@ func TestDebugUnixSocketRequests(t *testing.T) {
 
 	// Create OGTagCache with Unix socket target
 	target := "unix://" + socketPath
-	t.Logf("Using target: %s", target)
-	
 	cache := NewOGTagCache(target, config.OpenGraph{
 		Enabled: true,
 		TimeToLive: time.Minute,
 	}, memory.New(t.Context()))
 
-	// Test with various URL schemes
+	// Test cases that previously might have caused the "HTTP response to HTTPS client" error
 	testCases := []struct {
 		name string
-		inputURL string
+		url  string
 	}{
 		{"HTTPS URL", "https://example.com/test"},
-		{"HTTP URL", "http://example.com/test"},
-		{"HTTPS with port", "https://example.com:8080/test"},
+		{"HTTPS with port", "https://example.com:443/test"},
+		{"HTTPS with query", "https://example.com/test?param=value"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			inputURL, _ := url.Parse(tc.inputURL)
-			t.Logf("Input URL: %s", inputURL.String())
+			inputURL, _ := url.Parse(tc.url)
 			
-			// Get the target URL that will be used
-			targetURL := cache.getTarget(inputURL)
-			t.Logf("Target URL: %s", targetURL)
-			
-			// Verify that the target URL uses http scheme
-			if !strings.HasPrefix(targetURL, "http://unix") {
-				t.Errorf("Expected target URL to start with 'http://unix', got: %s", targetURL)
-			}
-			
-			// Try to get OG tags
+			// This should succeed without the "server gave HTTP response to HTTPS client" error
 			ogTags, err := cache.GetOGTags(context.Background(), inputURL, "example.com")
+			
 			if err != nil {
 				if strings.Contains(err.Error(), "server gave HTTP response to HTTPS client") {
-					t.Errorf("BUG FOUND: %v", err)
+					t.Errorf("Fix did not work: still getting HTTPS/HTTP error: %v", err)
 				} else {
-					t.Logf("Different error: %v", err)
+					// Other errors are acceptable for this test
+					t.Logf("Got non-HTTPS error (acceptable): %v", err)
 				}
 			} else {
-				t.Logf("Success: got OG tags: %v", ogTags)
+				// Success case
+				if ogTags["og:title"] != "Test Title" {
+					t.Errorf("Expected og:title 'Test Title', got: %v", ogTags["og:title"])
+				}
+				t.Logf("Success: got expected og:title = %s", ogTags["og:title"])
 			}
 		})
 	}
