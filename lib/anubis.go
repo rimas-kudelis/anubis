@@ -36,6 +36,7 @@ import (
 
 	// challenge implementations
 	_ "github.com/TecharoHQ/anubis/lib/challenge/metarefresh"
+	_ "github.com/TecharoHQ/anubis/lib/challenge/preact"
 	_ "github.com/TecharoHQ/anubis/lib/challenge/proofofwork"
 )
 
