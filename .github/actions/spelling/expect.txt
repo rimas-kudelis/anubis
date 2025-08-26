@@ -304,6 +304,7 @@ Tik
 Timpibot
 TLog
 traefik
+trunc
 uberspace
 Unbreak
 unbreakdocker
