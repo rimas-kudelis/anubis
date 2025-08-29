@@ -315,3 +315,52 @@
     gap: 1rem;
   }
 }
+
+@media (prefers-color-scheme: light) {
+  .block {
+    background-color: oklch(93% 0.034 272.788);
+  }
+
+  .challengeText {
+    color: oklch(12.9% 0.042 264.695);
+  }
+
+  .combinedDataText {
+    color: oklch(12.9% 0.042 264.695);
+  }
+
+  .nonceButton {
+    background-color: oklch(88.2% 0.059 254.128);
+  }
+
+  .nonceValue {
+    color: oklch(12.9% 0.042 264.695);
+  }
+
+  .blockTitle {
+    color: oklch(45% 0.085 224.283);
+  }
+
+  .hashContainerSuccess {
+    background-color: oklch(95% 0.052 163.051);
+    border-color: rgb(74 222 128);
+  }
+
+  .hashContainerError {
+    background-color: oklch(94.1% 0.03 12.58);
+    border-color: rgb(248 113 113);
+  }
+
+  .hashPrefixGreen {
+    color: oklch(53.2% 0.157 131.589);
+    font-weight: 600;
+  }
+
+  .hashPrefixRed {
+    color: oklch(45.5% 0.188 13.697);
+  }
+
+  .hashSuffix {
+    color: oklch(27.9% 0.041 260.031);
+  }
+}
