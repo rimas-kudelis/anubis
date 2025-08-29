@@ -217,6 +217,7 @@ NONINFRINGEMENT
 nosleep
 OCOB
 ogtag
+oklch
 omgili
 omgilibot
 openai
@@ -270,6 +271,7 @@ Ryzen
 sas
 sasl
 sbom
+screenshots
 searchbot
 searx
 sebest
@@ -342,6 +344,7 @@ withthothmock
 wolfbeast
 wordpress
 Workaround
+workaround
 workdir
 wpbot
 XCircle

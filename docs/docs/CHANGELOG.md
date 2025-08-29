@@ -76,6 +76,10 @@ We try to introduce breaking changes as much as possible, but these are the chan
 
 Previously Docker images were built with [ko](https://ko.build/), which put the Anubis binary at `/ko-app/anubis`. [#862](https://github.com/TecharoHQ/anubis/pull/862) changes this to build with [docker buildx bake](https://docs.docker.com/reference/cli/docker/buildx/bake/) instead. If this causes you problems, please [file an issue](https://github.com/TecharoHQ/anubis/issues/new).
 
+### New Locales
+
+- [Lithuanian](https://github.com/TecharoHQ/anubis/pull/972)
+
 ## v1.21.3: Minfilia Warde - Echo 3
 
 ### Added
