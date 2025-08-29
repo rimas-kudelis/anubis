@@ -34,8 +34,6 @@ const App = () => {
       setPassed(true);
     }, state.difficulty * 100);
 
-    console.log(challenge);
-
     return () => clearTimeout(timer);
   }, [challenge]);
 
