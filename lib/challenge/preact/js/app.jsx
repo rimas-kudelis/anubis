@@ -1,9 +1,10 @@
-import { render, h } from 'preact';
+import { render, h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { g, j, u } from "./xeact.js";
 import { Sha256 } from '@aws-crypto/sha256-js';
 
 /** @jsx h */
+/** @jsxFrag Fragment */
 
 function toHexString(arr) {
   return Array.from(arr)
@@ -45,17 +46,17 @@ const App = () => {
   }, [passed]);
 
   return (
-    <div>
+    <>
       {imageURL !== null && (
         <img src={imageURL} style="width:100%;max-width:256px;" />
       )}
       {state !== null && (
-        <div>
+        <>
           <p id="status">{state.loading_message}</p>
           <p>{state.connection_security_message}</p>
-        </div>
+        </>
       )}
-    </div>
+    </>
   );
 };
 
