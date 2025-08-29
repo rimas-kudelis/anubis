@@ -7,13 +7,16 @@ sidebar_position: 999
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).https://bsky.app/profile/xeiaso.net/post/3lxkqbd25hk22
 
 ## [Unreleased]
 
 <!-- This changes the project to: -->
 
 - Add a "proof of React" challenge to prove that the client is able to run a simple JSX app.
+- Added possibility to disable HTTP keep-alive to support backends not properly
+  handling it
+- Added a missing link to the Caddy installation environment in the installation documentation.
 - Downstream consumers can change the default [log/slog#Logger](https://pkg.go.dev/log/slog#Logger) instance that Anubis uses by setting `opts.Logger` to your slog instance of choice ([#864](https://github.com/TecharoHQ/anubis/issues/864)).
 - The [Thoth client](https://anubis.techaro.lol/docs/admin/thoth) is now public in the repo instead of being an internal package.
 - [Custom-AsyncHttpClient](https://github.com/AsyncHttpClient/async-http-client)'s default User-Agent has an increased weight by default ([#852](https://github.com/TecharoHQ/anubis/issues/852)).
@@ -31,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The hard dependency on WebCrypto has been removed, allowing a proof of work challenge to work over plain (unencrypted) HTTP.
 - Firefox for Android support has been fixed by embedding the challenge ID into the pass-challenge route. This also fixes some inconsistent issues with other mobile browsers.
 - The Anubis version number is put in the footer of every page.
+- Prevent the proof of work nonce from being a decimal value by using Math.trunc to coerce it back to an integer if it happens ([#1043](https://github.com/TecharoHQ/anubis/issues/1043)).
 - The legacy JSON based policy file example has been removed and all documentation for how to write a policy file in JSON has been deleted. JSON based policy files will still work, but YAML is the superior option for Anubis configuration.
 - A standard library HTTP server log message about HTTP pipelining not working has been filtered out of Anubis' logs. There is no action that can be taken about it.
 - The default `favicon` pattern in `data/common/keep-internet-working.yaml` has been updated to permit requests for png/gif/jpg/svg files as well as ico.
@@ -39,12 +43,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add optional restrictions for JWT based on the value of a header ([#697](https://github.com/TecharoHQ/anubis/pull/697))
 - The word "hack" has been removed from the translation strings for Anubis due to incidents involving people misunderstanding that word and sending particularly horrible things to the project lead over email.
 - Bump AI-robots.txt to version 1.39
+- Add a default block rule for Huawei Cloud.
+- Add a default block rule for Alibaba Cloud.
+- Add X-Request-URI support so that Subrequest Authentication has path support.
+- Add better logging when using Subrequest Authentication.
+- Two of Slackware's community git repository servers are now poxied by Anubis.
+- Added support to use Traefik forwardAuth middleware.
 
 ### Security-relevant changes
 
 #### Fix potential double-spend for challenges
 
-Anubis operates by issuing a challenge and having the client present a solution for that challenge. Challenges are identified by a unique UUID, which is tored in the database.
+Anubis operates by issuing a challenge and having the client present a solution for that challenge. Challenges are identified by a unique UUID, which is stored in the database.
 
 The problem is that a challenge could potentially be used twice by a dedicated attacker making a targeted attack against Anubis. Challenge records did not have a "spent" or "used" field. In total, a dedicated attacker could solve a challenge once and reuse that solution across multiple sessions in order to mint additional tokens.
 
@@ -282,7 +292,6 @@ And some cleanups/refactors were added:
 - Bump AI-robots.txt to version 1.37
 - Make progress bar styling more compatible (UXP, etc)
 - Add `--strip-base-prefix` flag/envvar to strip the base prefix from request paths when forwarding to target servers
-- Added support to use Traefik forwardAuth middleware
 - Fix an off-by-one in the default threshold config
 - Add functionality for HS512 JWT algorithm
 - Add support for dynamic cookie domains with the `--cookie-dynamic-domain`/`COOKIE_DYNAMIC_DOMAIN` flag/envvar
