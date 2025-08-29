@@ -37,6 +37,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set version
+        run: |
+          echo "VERSION=$(git describe --tags --always --dirty) >> $GITHUB_ENV
+
       - name: Build and push
         id: build
         uses: docker/bake-action@76f9fa3a758507623da19f6092dc4089a7e61592 # v6.6.0
@@ -46,4 +50,3 @@ jobs:
           sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          set: ""
