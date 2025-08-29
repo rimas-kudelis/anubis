@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- This changes the project to: -->
 
+- Add a "proof of React" challenge to prove that the client is able to run a simple JSX app.
 - Added possibility to disable HTTP keep-alive to support backends not properly
   handling it
 - Added a missing link to the Caddy installation environment in the installation documentation.
