@@ -1,6 +1,6 @@
 import { render, h, Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { g, j, u } from "./xeact.js";
+import { g, j, u, x } from "./xeact.js";
 import { Sha256 } from '@aws-crypto/sha256-js';
 
 /** @jsx h */
@@ -58,4 +58,5 @@ const App = () => {
   );
 };
 
+x(g("app"));
 render(<App />, g("app"));
