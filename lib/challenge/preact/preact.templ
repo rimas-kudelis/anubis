@@ -7,7 +7,9 @@ import (
 
 templ page(redir, challenge string, difficulty int, loc *localization.SimpleLocalizer) {
 	<div class="centered-div">
-		<div id="app"></div>
+		<div id="app">
+			{ loc.T("loading") }
+		</div>
 		@templ.JSONScript("preact_info", map[string]any{
 			"redir":                       redir,
 			"challenge":                   challenge,
