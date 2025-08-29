@@ -254,6 +254,7 @@ runtimedir
 runtimedirectory
 sas
 sasl
+screenshots
 searchbot
 searx
 sebest
