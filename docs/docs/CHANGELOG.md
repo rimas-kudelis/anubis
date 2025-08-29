@@ -7,7 +7,7 @@ sidebar_position: 999
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).https://bsky.app/profile/xeiaso.net/post/3lxkqbd25hk22
 
 ## [Unreleased]
 
@@ -45,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a default block rule for Huawei Cloud.
 - Add a default block rule for Alibaba Cloud.
 - Add X-Request-URI support so that Subrequest Authentication has path support.
+- Add better logging when using Subrequest Authentication.
 - Two of Slackware's community git repository servers are now poxied by Anubis.
 - Added support to use Traefik forwardAuth middleware.
 
