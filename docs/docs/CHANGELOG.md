@@ -74,6 +74,12 @@ Thanks to [@taviso](https://github.com/taviso) for reporting this issue.
 
 - [Lithuanian](https://github.com/TecharoHQ/anubis/pull/972)
 
+### Added
+
+Anubis now supports these new languages:
+
+- Vietnamese [#926](https://github.com/TecharoHQ/anubis/pull/926)
+
 ## v1.21.3: Minfilia Warde - Echo 3
 
 ### Added
