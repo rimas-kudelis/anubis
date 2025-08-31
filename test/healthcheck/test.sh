@@ -26,3 +26,5 @@ while ! docker compose ps | grep healthy; do
   delay=$(( delay * 2 ))
   attempt=$(( attempt + 1 ))
 done
+
+exit 0
