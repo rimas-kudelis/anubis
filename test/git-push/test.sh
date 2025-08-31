@@ -32,5 +32,3 @@ sleep 2
   git commit -sm "initial commit" && \
   git push -u http://localhost:3000/git/foo.git master
 )
-
-docker compose down
