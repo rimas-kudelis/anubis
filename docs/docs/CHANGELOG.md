@@ -13,10 +13,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- This changes the project to: -->
 
-- Fix `SERVE_ROBOTS_TXT` setting file after the double slash fix broke it.
-- Remove the default configuration rule to block Tencent cloud. If users see abuse from Tencent cloud IP ranges, please contact abuse@tencent.com and mention that you are using Anubis to protect your services. Please include source IP address, source port, timestamp, target IP address, target port, request headers (including the User-Agent header), and target endpoints/patterns.
+## v1.23.1: Lyse Hext - Echo 1
+
+- Fix `SERVE_ROBOTS_TXT` setting after the double slash fix broke it.
 
 ### Potentially breaking changes
+
+#### Remove default Tencent Cloud block rule
+
+v1.23.0 added a default rule to block Tencent Cloud. After an email from their abuse team where they promised to take action to clean up their reputation, I have removed the default block rule. If this network causes you problems, please contact [abuse@tencent.com](mailto:abuse@tencent.com) and supply the following information:
+
+- Time of abusive requests.
+- IP address, User-Agent header, or other unique identifiers that can help the abuse team educate the customer about their misbehaving infrastructure.
+- Does the abusive IP address request robots.txt? If not, be sure to include that information.
+- A brief description of the impact to your system such as high system load, pages not rendering, or database system crashes. This helps the provider establish the fact that their customer is causing you measurable harm.
+- Context as to what your service is, what it does, and why they should care.
+
+Mention that you are using Anubis or BotStopper to protect your services. If they do not respond to you, please [contact me](https://xeiaso.net/contact) as soon as possible.
 
 #### Docker / OCI registry clients
 
