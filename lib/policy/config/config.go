@@ -62,11 +62,14 @@ type BotConfig struct {
 	Expression     *ExpressionOrList `json:"expression,omitempty" yaml:"expression,omitempty"`
 	Challenge      *ChallengeRules   `json:"challenge,omitempty" yaml:"challenge,omitempty"`
 	Weight         *Weight           `json:"weight,omitempty" yaml:"weight,omitempty"`
-	GeoIP          *GeoIP            `json:"geoip,omitempty"`
-	ASNs           *ASNs             `json:"asns,omitempty"`
-	Name           string            `json:"name" yaml:"name"`
-	Action         Rule              `json:"action" yaml:"action"`
-	RemoteAddr     []string          `json:"remote_addresses,omitempty" yaml:"remote_addresses,omitempty"`
+
+	// Thoth features
+	GeoIP *GeoIP `json:"geoip,omitempty"`
+	ASNs  *ASNs  `json:"asns,omitempty"`
+
+	Name       string   `json:"name" yaml:"name"`
+	Action     Rule     `json:"action" yaml:"action"`
+	RemoteAddr []string `json:"remote_addresses,omitempty" yaml:"remote_addresses,omitempty"`
 }
 
 func (b BotConfig) Zero() bool {
