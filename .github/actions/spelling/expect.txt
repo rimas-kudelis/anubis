@@ -106,6 +106,7 @@ externalfetcher
 extldflags
 facebookgo
 Factset
+fahedouch
 fastcgi
 fediverse
 ffprobe
@@ -194,6 +195,7 @@ lcj
 ldflags
 letsencrypt
 Lexentale
+lfc
 lgbt
 licend
 licstart

@@ -18,9 +18,9 @@ import (
 	"github.com/TecharoHQ/anubis/internal"
 	"github.com/TecharoHQ/anubis/internal/ogtags"
 	"github.com/TecharoHQ/anubis/lib/challenge"
+	"github.com/TecharoHQ/anubis/lib/config"
 	"github.com/TecharoHQ/anubis/lib/localization"
 	"github.com/TecharoHQ/anubis/lib/policy"
-	"github.com/TecharoHQ/anubis/lib/policy/config"
 	"github.com/TecharoHQ/anubis/web"
 	"github.com/TecharoHQ/anubis/xess"
 	"github.com/a-h/templ"
@@ -48,12 +48,13 @@ type Options struct {
 	CookieSecure             bool
 	CookieSameSite           http.SameSite
 	Logger                   *slog.Logger
+	LogLevel                 string
 	PublicUrl                string
 	JWTRestrictionHeader     string
 	DifficultyInJWT          bool
 }
 
-func LoadPoliciesOrDefault(ctx context.Context, fname string, defaultDifficulty int) (*policy.ParsedConfig, error) {
+func LoadPoliciesOrDefault(ctx context.Context, fname string, defaultDifficulty int, logLevel string) (*policy.ParsedConfig, error) {
 	var fin io.ReadCloser
 	var err error
 
@@ -77,7 +78,7 @@ func LoadPoliciesOrDefault(ctx context.Context, fname string, defaultDifficulty 
 		}
 	}(fin)
 
-	anubisPolicy, err := policy.ParseConfig(ctx, fin, fname, defaultDifficulty)
+	anubisPolicy, err := policy.ParseConfig(ctx, fin, fname, defaultDifficulty, logLevel)
 	if err != nil {
 		return nil, fmt.Errorf("can't parse policy file %s: %w", fname, err)
 	}
