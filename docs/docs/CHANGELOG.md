@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- This changes the project to: -->
 
+## v1.24.0 [pre1]: Y'shtola Rhul
+
+Anubis is back and better than ever! Lots of minor fixes with some big ones interspersed.
+
 - Fix panic when validating challenges after privacy-mode browsers strip headers and the follow-up request matches an `ALLOW` threshold.
 - Expose WEIGHT rule matches as Prometheus metrics.
 - Allow more OCI registry clients [based on feedback](https://github.com/TecharoHQ/anubis/pull/1253#issuecomment-3506744184).
@@ -91,19 +95,21 @@ Additionally, information about [how Anubis uses each logging level](./admin/pol
 - DNS cache and other optimizations to minimize unnecessary DNS queries.
 
 The DNS cache TTL can be changed in the bots config like this:
+
 ```yaml
 dns_ttl:
   forward: 600
   reverse: 600
 ```
+
 The default value for both forward and reverse queries is 300 seconds.
 
 The `verifyFCrDNS` CEL function has two overloads:
+
 - `(addr)`
   Simply verifies that the remote side has PTR records pointing to the target address.
 - `(addr, ptrPattern)`
   Verifies that the remote side refers to a specific domain and that this domain points to the target IP.
-
 
 ## v1.23.1: Lyse Hext - Echo 1
 
