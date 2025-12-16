@@ -100,6 +100,9 @@ func XForwardedForToXRealIP(next http.Handler) http.Handler {
 			ip := xff.Parse(xffHeader)
 			slog.Debug("setting X-Real-Ip from X-Forwarded-For", "to", ip, "x-forwarded-for", xffHeader)
 			r.Header.Set("X-Real-Ip", ip)
+			if addr, err := netip.ParseAddr(ip); err == nil {
+				r = r.WithContext(context.WithValue(r.Context(), realIPKey{}, addr))
+			}
 		}
 
 		next.ServeHTTP(w, r)

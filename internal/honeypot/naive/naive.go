@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
+	"net"
 	"net/http"
+	"net/netip"
 	"time"
 
 	"github.com/TecharoHQ/anubis/internal"
@@ -152,9 +154,8 @@ func (i *Impl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	realIP, _ := internal.RealIP(r)
 	if !realIP.IsValid() {
-		lg.Error("the real IP is somehow invalid, bad middleware stack?")
-		http.Error(w, "The cake is a lie", http.StatusTeapot)
-		return
+		host, _, _ := net.SplitHostPort(r.RemoteAddr)
+		realIP = netip.MustParseAddr(host)
 	}
 
 	network, ok := internal.ClampIP(realIP)
