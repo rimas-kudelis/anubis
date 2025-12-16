@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand/v2"
-	"net"
 	"net/http"
 	"net/netip"
 	"time"
@@ -154,8 +153,7 @@ func (i *Impl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	realIP, _ := internal.RealIP(r)
 	if !realIP.IsValid() {
-		host, _, _ := net.SplitHostPort(r.RemoteAddr)
-		realIP = netip.MustParseAddr(host)
+		realIP = netip.MustParseAddr(r.Header.Get("X-Real-Ip"))
 	}
 
 	network, ok := internal.ClampIP(realIP)
