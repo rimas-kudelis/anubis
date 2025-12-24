@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- This changes the project to: -->
 
-## v1.24.0 [pre1]: Y'shtola Rhul
+## v1.24.0: Y'shtola Rhul
 
 Anubis is back and better than ever! Lots of minor fixes with some big ones interspersed.
 
